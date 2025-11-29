@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kushwant Plays — Channel</title>
+  <link rel="icon" href="assets/playslogo.png" type="image/png" />
+  <meta name="description" content="Kushwant Plays channel — videos & shorts" />
+
+  <style>
+    :root{
+      --bg:#0f0f0f; --panel:#181818; --muted:#999; --accent:#ff0000; --text:#eaeaea;
+      --max-w:1200px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+    a{color:inherit}
+    .container{max-width:var(--max-w);margin:0 auto;padding:0 16px}
+
+    /* Topbar */
+    .topbar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:#141414;border-bottom:1px solid #222;position:sticky;top:0;z-index:60}
+    .logo{font-weight:700;font-size:18px;color:var(--text)}
+    .searchWrap{flex:1;display:flex;justify-content:center}
+    .searchWrap input{width:100%;max-width:680px;padding:8px 12px;border-radius:4px;border:none;background:#0b0b0b;color:var(--text)}
+    .searchWrap button{margin-left:8px;padding:8px 12px;border-radius:4px;border:none;background:#222;color:var(--text);cursor:pointer}
+
+    /* Layout */
+    .layout{display:flex;gap:24px;padding:18px 0;}
+    .sidebar{width:220px;background:transparent;position:sticky;top:64px;height:calc(100vh - 64px);padding-top:8px;border-right:1px solid #141414}
+    .side-link{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;color:var(--muted);text-decoration:none}
+    .side-link:hover{background:#222;color:var(--text)}
+    .main{flex:1;padding-bottom:60px}
+
+    /* Channel header */
+    .banner{width:100%;height:220px;background:#222 center/cover no-repeat;border-radius:6px;overflow:hidden}
+    .channel-top{display:flex;gap:18px;align-items:flex-end;padding:14px 0;border-bottom:1px solid #171717}
+    .avatar{width:96px;height:96px;border-radius:50%;overflow:hidden;border:4px solid var(--bg);flex:0 0 96px}
+    .avatar img{width:100%;height:100%;object-fit:cover}
+    .channel-info{flex:1}
+    .channel-name{font-size:20px;font-weight:700}
+    .channel-meta{color:var(--muted);margin-top:6px;font-size:14px}
+    .subscribe-wrap{margin-left:auto;display:flex;align-items:center;gap:12px}
+    .sub-btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:24px;border:none;font-weight:700;cursor:pointer}
+
+    /* Tabs */
+    .tabs{display:flex;gap:18px;padding:12px 0;border-bottom:1px solid #171717;margin-bottom:18px;flex-wrap:wrap}
+    .tab{padding:8px 12px;color:var(--muted);font-weight:600;cursor:pointer;border-radius:6px}
+    .tab.active{color:var(--text);background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.03)}
+
+    /* Controls */
+    .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:12px 0}
+    .controls .btn{background:#1f1f1f;border:1px solid #222;color:var(--text);padding:8px 12px;border-radius:6px;cursor:pointer}
+
+    /* Sections */
+    .section{margin-top:8px}
+    .section h2{margin:8px 0 12px;color:var(--text);font-size:18px}
+
+    /* Grid for videos and shorts */
+    .videos-grid{display:grid;gap:12px}
+    .video-card{background:var(--panel);border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .12s ease,box-shadow .12s;box-shadow:0 2px 8px rgba(0,0,0,0.35);display:flex;flex-direction:column}
+    .video-card:hover{transform:translateY(-6px);box-shadow:0 12px 30px rgba(0,0,0,0.6)}
+    .thumb{width:100%;height:180px;background:#333 center/cover no-repeat;flex:0 0 auto}
+    .meta{padding:10px;display:flex;gap:10px;align-items:flex-start}
+    .meta .title{font-weight:600;line-height:1.2}
+    .meta .info{color:var(--muted);font-size:13px;margin-top:6px}
+    .duration-badge{position:absolute;right:6px;bottom:8px;background:rgba(0,0,0,0.7);padding:3px 6px;border-radius:4px;font-size:12px;color:#fff}
+
+    /* responsive columns */
+    @media (min-width:1200px){
+      .videos-grid.short-grid{grid-template-columns:repeat(6,1fr)}
+      .videos-grid.long-grid{grid-template-columns:repeat(3,1fr)}
+      .sidebar{display:block}
+    }
+    @media (min-width:900px) and (max-width:1199px){
+      .videos-grid.short-grid{grid-template-columns:repeat(5,1fr)}
+      .videos-grid.long-grid{grid-template-columns:repeat(3,1fr)}
+    }
+    @media (min-width:600px) and (max-width:899px){
+      .videos-grid.short-grid{grid-template-columns:repeat(4,1fr)}
+      .videos-grid.long-grid{grid-template-columns:repeat(2,1fr)}
+      .sidebar{display:none}
+    }
+    @media (max-width:599px){
+      .topbar{padding:8px}
+      .banner{height:160px}
+      .channel-top{flex-direction:row;align-items:center}
+      .avatar{width:64px;height:64px}
+      .videos-grid.short-grid{grid-template-columns:repeat(3,1fr)}
+      .videos-grid.long-grid{grid-template-columns:repeat(1,1fr)}
+      .sidebar{display:none}
+    }
+
+    /* Modal player */
+    .modal {
+      position: fixed; inset: 0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.75);
+      z-index:120; padding:20px; visibility:hidden; opacity:0; transition:opacity .18s ease, visibility .18s;
+    }
+    .modal.open{visibility:visible; opacity:1}
+    .modal-content{width:100%; max-width:980px; background:#000; border-radius:8px; overflow:hidden; position:relative}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#0b0b0b}
+    .modal-close{background:transparent;border:none;color:#fff;font-size:18px;cursor:pointer}
+    .embed-wrap{position:relative;padding-top:56.25%} /* 16:9 */
+    .embed-wrap .player-slot{position:absolute;left:0;top:0;width:100%;height:100%}
+
+    .close-disabled{opacity:0.45; pointer-events:none}
+
+    /* Mini-player (YouTube-style) */
+    #miniPlayer {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: 320px;
+      height: 180px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.6);
+      background: #000;
+      z-index: 250;
+      display:none;
+      cursor: grab;
+    }
+    #miniPlayer .mini-head { display:flex; align-items:center; justify-content:space-between; padding:6px 8px; background:rgba(0,0,0,0.45); }
+    #miniPlayer .mini-title { color:#fff; font-size:13px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px; padding-left:6px;}
+    #miniPlayer .mini-controls { display:flex; gap:8px; align-items:center; }
+    #miniPlayer .mini-controls button { background:transparent; border:none; color:#fff; font-size:14px; cursor:pointer; }
+    #miniPlayer .mini-body { width:100%; height: calc(100% - 36px); position:relative; }
+    #miniPlayer .player-slot { position:absolute; left:0; top:0; width:100%; height:100%; }
+
+    /* draggable cursor change */
+    #miniPlayer.dragging { cursor:grabbing; }
+
+    /* mobile adjustments */
+    @media (max-width:480px){
+      #miniPlayer { width:260px; height:150px; right:12px; bottom:12px; border-radius:10px; }
+      #miniPlayer .mini-title { max-width:120px; font-size:12px; }
+    }
+
+    /* small UI */
+    .kbd { background:#121212;border:1px solid #222;padding:4px 8px;border-radius:6px;font-size:12px;color:var(--muted) }
+    .loader{padding:28px;text-align:center;color:var(--muted)}
+    .error{padding:14px;background:#2b0f0f;color:#ffcccc;border-radius:8px;margin:12px 0}
+  </style>
+</head>
+<body>
+  <div class="topbar container">
+    <div class="logo">Kushwant Plays</div>
+    <div class="searchWrap">
+      <input id="globalSearch" placeholder="Search channel (press Enter)..." />
+      <button id="searchBtn">Search</button>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center">
+      <div class="kbd">@kushwant20</div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="layout">
+      <aside class="sidebar" aria-label="Navigation">
+        <a class="side-link" href="index.html">🏠 Home</a>
+        <a class="side-link" href="games.html">🎮 Games</a>
+        <a class="side-link" href="stats.html">📊 Stats</a>
+      </aside>
+
+      <main class="main">
+        <div id="banner" class="banner"></div>
+
+        <div class="channel-top">
+          <div class="avatar"><img id="avatar" src="" alt="avatar"></div>
+          <div class="channel-info">
+            <div class="channel-name" id="channelTitle">Loading channel...</div>
+            <div class="channel-meta"><span id="subscriberCount"></span> • <span id="videoCount"></span></div>
+            <div id="channelDesc" style="margin-top:8px;color:var(--muted);max-width:70ch"></div>
+          </div>
+          <div class="subscribe-wrap">
+            <button class="sub-btn">SUBSCRIBE</button>
+          </div>
+        </div>
+
+        <div class="tabs" role="tablist">
+          <div class="tab active" data-tab="videos">VIDEOS</div>
+          <div class="tab" data-tab="shorts">SHORTS</div>
+          <div style="margin-left:auto;color:var(--muted);font-size:13px;align-self:center">Click thumbnail to play</div>
+        </div>
+
+        <div class="controls">
+          <input id="localSearch" placeholder="Filter displayed items..." style="flex:1;padding:8px;border-radius:6px;background:#0b0b0b;border:1px solid #171717;color:var(--text)">
+          <div style="display:flex;gap:8px">
+            <button id="latestBtn" class="btn">Latest</button>
+            <button id="popularBtn" class="btn">Popular</button>
+            <button id="oldestBtn" class="btn">Oldest</button>
+          </div>
+        </div>
+
+        <div id="loader" class="loader">Loading channel & videos…</div>
+        <div id="error" class="error" style="display:none"></div>
+
+        <!-- VIDEOS SECTION -->
+        <section id="videosSection" class="section">
+          <h2 id="videosTitle">Videos</h2>
+          <div id="videosGrid" class="videos-grid long-grid"></div>
+        </section>
+
+        <!-- SHORTS SECTION -->
+        <section id="shortsSection" class="section" style="display:none;margin-top:28px">
+          <h2 id="shortsTitle">Shorts</h2>
+          <div id="shortsGrid" class="videos-grid short-grid"></div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal player (center) -->
+  <div id="playerModal" class="modal" role="dialog" aria-hidden="true">
+    <div class="modal-content" role="document">
+      <div class="modal-header">
+        <div id="modalTitle" style="font-weight:600"></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div id="closeCountdown" style="color:#aaa;font-size:13px;margin-right:8px"></div>
+          <button id="minimizeBtn" class="modal-close close-disabled" title="Minimize (available after 30s)">—</button>
+        </div>
+      </div>
+      <div class="embed-wrap">
+        <div id="playerSlot" class="player-slot"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mini-player -->
+  <div id="miniPlayer" aria-hidden="true">
+    <div class="mini-head">
+      <div style="display:flex;align-items:center">
+        <div style="width:38px;height:22px;background:#111;border-radius:4px;display:flex;align-items:center;justify-content:center;margin-left:6px;color:#fff;font-size:12px">YT</div>
+        <div class="mini-title" id="miniTitle">Playing...</div>
+      </div>
+      <div class="mini-controls">
+        <button id="miniPlayPause" title="Play/Pause">⏯</button>
+        <button id="miniClose" title="Close">✕</button>
+      </div>
+    </div>
+    <div class="mini-body">
+      <div id="miniSlot" class="player-slot"></div>
+    </div>
+  </div>
+
+  <!-- Load YouTube IFrame API -->
+  <script src="https://www.youtube.com/iframe_api"></script>
+
+  <script>
+  (function(){
+    /* ========== CONFIG ========== */
+    const API_KEY = 'AIzaSyCT68zgBegab2Sczx9IF5nkCLi9ZpSg4IQ';
+    const CHANNEL_QUERY = 'kushwant20';
+    const SHORT_THRESHOLD_SEC = 60;
+
+    /* ========== HELPERS ========== */
+    const $ = id => document.getElementById(id);
+    function fmtCount(n){ if(!n) return ''; n=Number(n); if(n>=1e9) return (n/1e9).toFixed(1)+'B'; if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1e3) return (n/1e3).toFixed(1)+'K'; return String(n); }
+    function timeAgo(iso){ const d=new Date(iso); const s=Math.floor((Date.now()-d)/1000); if(s<60) return s+'s ago'; if(s<3600) return Math.floor(s/60)+'m ago'; if(s<86400) return Math.floor(s/3600)+'h ago'; const days=Math.floor(s/86400); if(days<30) return days+'d ago'; return d.toLocaleDateString(); }
+    async function fetchJson(url){ const res = await fetch(url); if(!res.ok) throw new Error(res.status+' '+res.statusText); return res.json(); }
+    function parseIsoDuration(iso){ if(!iso) return 0; const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/); if(!match) return 0; const h=parseInt(match[1]||0,10), m=parseInt(match[2]||0,10), s=parseInt(match[3]||0,10); return h*3600+m*60+s; }
+    function escapeHtml(s){ return String(s||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+    /* ========== YT Data helpers ========== */
+    async function findChannelId(query){
+      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${encodeURIComponent(query)}&maxResults=1&key=${API_KEY}`;
+      const data = await fetchJson(url);
+      if(data.items && data.items.length) return data.items[0].snippet.channelId;
+      throw new Error('Channel not found for: ' + query);
+    }
+    async function getChannelDetails(channelId){
+      const url = `https://www.googleapis.com/youtube/v3/channels?part=snippet,brandingSettings,statistics,contentDetails&id=${channelId}&key=${API_KEY}`;
+      return fetchJson(url);
+    }
+    async function getAllPlaylistItems(playlistId){
+      const all=[]; let pageToken='';
+      do {
+        const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&playlistId=${playlistId}&maxResults=50` + (pageToken?`&pageToken=${pageToken}`:'') + `&key=${API_KEY}`;
+        const d = await fetchJson(url);
+        if(d.items && d.items.length) all.push(...d.items);
+        pageToken = d.nextPageToken || '';
+      } while(pageToken);
+      return all;
+    }
+    async function getVideosDetails(ids){
+      if(!ids.length) return [];
+      const batches=[]; for(let i=0;i<ids.length;i+=50) batches.push(ids.slice(i,i+50));
+      const items=[];
+      for(const b of batches){
+        const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${b.join(',')}&key=${API_KEY}`;
+        const d = await fetchJson(url);
+        if(d.items) items.push(...d.items);
+      }
+      return items;
+    }
+
+    /* ========== Render helpers ========== */
+    function makeVideoCard(item, det){
+      const id = det?.id || (item.snippet && item.snippet.resourceId && item.snippet.resourceId.videoId);
+      const title = item.snippet?.title || det?.snippet?.title || '';
+      const thumb = (item.snippet?.thumbnails?.high?.url) || (item.snippet?.thumbnails?.medium?.url) || '';
+      const published = item.snippet?.publishedAt || item.snippet?.publishedAt || '';
+      const dur = det?.contentDetails?.duration ? parseIsoDuration(det.contentDetails.duration) : 0;
+      const durText = dur ? (dur>=3600? new Date(dur*1000).toISOString().substr(11,8) : new Date(dur*1000).toISOString().substr(14,5)) : '';
+
+      const el = document.createElement('article');
+      el.className = 'video-card';
+      el.innerHTML = `
+        <div style="position:relative">
+          <div class="thumb" style="background-image:url('${thumb}');background-size:cover;background-position:center"></div>
+          ${durText ? `<div class="duration-badge">${durText}</div>` : ''}
+        </div>
+        <div class="meta">
+          <div style="flex:1">
+            <div class="title">${escapeHtml(title)}</div>
+            <div class="info">${timeAgo(published)}</div>
+          </div>
+        </div>
+      `;
+      el.addEventListener('click', ()=> openModalAndPlay(id, title));
+      return el;
+    }
+
+    /* ========== Modal + Mini-player management (YT IFrame API) ========== */
+    let YTPlayer = null;          // single YT.Player instance we re-use
+    let currentVideoId = null;
+    let currentTitle = '';
+    let modalOpen = false;
+    let minimizeAllowed = false;
+    let closeTimer = null;
+    let saveInterval = null;
+
+    const STORAGE_KEY = 'kp_mini_player_state_v1';
+    function saveState(obj){ localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
+    function loadState(){ const s=localStorage.getItem(STORAGE_KEY); return s?JSON.parse(s):null; }
+    function clearState(){ localStorage.removeItem(STORAGE_KEY); }
+
+    // create or attach YT player into provided DOM element (slot)
+    function createPlayerIn(slotEl, videoId, startSeconds=0, autoplay=true, onReadyCallback){
+      // If player exists and we are switching slot, move the iframe element into the new slot and reattach events
+      if(YTPlayer && YTPlayer.getIframe){
+        try {
+          const iframe = YTPlayer.getIframe();
+          slotEl.innerHTML = ''; slotEl.appendChild(iframe);
+        } catch(e){}
+        try { YTPlayer.setSize(slotEl.clientWidth, slotEl.clientHeight); } catch(e){}
+        // load or cue
+        try {
+          if(autoplay) YTPlayer.loadVideoById({videoId, startSeconds});
+          else YTPlayer.cueVideoById(videoId, startSeconds);
+        } catch(e){}
+        if(onReadyCallback) onReadyCallback(YTPlayer);
+        return YTPlayer;
+      }
+
+      // Otherwise create a new YT.Player
+      slotEl.innerHTML = '<div id="ytframe_internal"></div>';
+      YTPlayer = new YT.Player('ytframe_internal', {
+        height: slotEl.clientHeight,
+        width: slotEl.clientWidth,
+        videoId: videoId,
+        playerVars: { autoplay: autoplay?1:0, rel:0, modestbranding:1 },
+        events: {
+          onReady: (e) => {
+            if(startSeconds) e.target.seekTo(startSeconds, true);
+            if(autoplay) e.target.playVideo();
+            if(onReadyCallback) onReadyCallback(e.target);
+          },
+          onStateChange: (ev) => {
+            // Start the 30s countdown ONLY when the video actually starts playing
+            if(ev.data === YT.PlayerState.PLAYING && modalOpen && !minimizeAllowed){
+              startCloseCountdown(30);
+            }
+            // Also, if the video is paused during countdown, keep countdown paused (no complicated pause logic here)
+          }
+        }
+      });
+      return YTPlayer;
+    }
+
+    // open modal and play
+    function openModalAndPlay(videoId, title){
+      currentVideoId = videoId;
+      currentTitle = title || '';
+      modalOpen = true;
+      minimizeAllowed = false;
+      $('modalTitle').textContent = currentTitle;
+      $('playerModal').classList.add('open'); $('playerModal').setAttribute('aria-hidden','false');
+      document.body.style.overflow = 'hidden';
+      $('minimizeBtn').classList.add('close-disabled'); $('closeCountdown').textContent = '';
+
+      // create player inside modal slot
+      const slot = $('playerSlot');
+      // create with autoplay false first - player 'onStateChange' will start timer when PLAYING occurs
+      createPlayerIn(slot, videoId, 0, true, () => {
+        // clear previous countdown if any - it will be restarted by onStateChange when playback begins
+        if(closeTimer) { clearInterval(closeTimer); closeTimer = null; }
+        if(saveInterval) clearInterval(saveInterval);
+        saveInterval = setInterval(()=>{
+          try {
+            const t = YTPlayer && YTPlayer.getCurrentTime ? Math.floor(YTPlayer.getCurrentTime()) : 0;
+            saveState({ videoId: currentVideoId, title: currentTitle, time: t, minimized: false, pos: null });
+          } catch(e){}
+        }, 2000);
+      });
+    }
+
+    // Start 30s countdown until minimize allowed (display counts down)
+    function startCloseCountdown(seconds){
+      // if already allowed, do nothing
+      if(minimizeAllowed) return;
+      let s = seconds;
+      $('closeCountdown').textContent = `Can minimize in ${s}s`;
+      if(closeTimer) clearInterval(closeTimer);
+      closeTimer = setInterval(()=>{
+        s--;
+        if(s>0) $('closeCountdown').textContent = `Can minimize in ${s}s`;
+        else {
+          clearInterval(closeTimer);
+          closeTimer = null;
+          $('closeCountdown').textContent = '';
+          $('minimizeBtn').classList.remove('close-disabled');
+          minimizeAllowed = true;
+        }
+      },1000);
+    }
+
+    // minimize (move player into mini-player and keep playing)
+    function minimizeToMini(){
+      if(!YTPlayer) return;
+      modalOpen = false;
+      $('playerModal').classList.remove('open'); $('playerModal').setAttribute('aria-hidden','true');
+      document.body.style.overflow = '';
+      // move iframe into miniSlot
+      const miniSlot = $('miniSlot');
+      const currentTime = Math.floor(YTPlayer.getCurrentTime() || 0);
+
+      // create/attach to mini slot and continue playback
+      createPlayerIn(miniSlot, currentVideoId, currentTime, true, (p)=>{
+        $('miniTitle').textContent = currentTitle || 'Playing...';
+        showMini();
+        // persist state
+        const t = Math.floor(p.getCurrentTime ? p.getCurrentTime() : currentTime);
+        saveState({ videoId: currentVideoId, title: currentTitle, time: t, minimized: true, pos: getMiniPosition() });
+        if(saveInterval) clearInterval(saveInterval);
+        saveInterval = setInterval(()=>{
+          try {
+            const cur = Math.floor(YTPlayer.getCurrentTime());
+            const state = loadState()||{};
+            state.time = cur; state.videoId = currentVideoId; state.title = currentTitle; state.minimized = true;
+            state.pos = getMiniPosition();
+            saveState(state);
+          } catch(e){}
+        },2000);
+      });
+
+      // clear modal countdown/timers
+      if(closeTimer) { clearInterval(closeTimer); closeTimer = null; }
+      $('closeCountdown').textContent = '';
+      $('minimizeBtn').classList.add('close-disabled');
+      minimizeAllowed = false;
+    }
+
+    // show mini UI
+    function showMini(){
+      const mp = $('miniPlayer');
+      mp.style.display = 'block';
+      mp.setAttribute('aria-hidden','false');
+    }
+
+    function hideMini(){
+      const mp = $('miniPlayer');
+      mp.style.display = 'none';
+      mp.setAttribute('aria-hidden','true');
+    }
+
+    // get mini position stored in dataset or computed
+    function getMiniPosition(){
+      const mp = $('miniPlayer');
+      const rect = mp.getBoundingClientRect();
+      // prefer left/top if set
+      if(mp.style.left && mp.style.top) return { left: mp.style.left, top: mp.style.top };
+      return { right: mp.style.right || '20px', bottom: mp.style.bottom || '20px' };
+    }
+
+    // set mini position (for restoring)
+    function setMiniPosition(pos){
+      const mp = $('miniPlayer');
+      if(!pos) return;
+      if(pos.left !== undefined && pos.top !== undefined){
+        mp.style.left = pos.left; mp.style.top = pos.top; mp.style.right = 'auto'; mp.style.bottom = 'auto';
+      } else {
+        mp.style.right = pos.right || '20px'; mp.style.bottom = pos.bottom || '20px'; mp.style.left = 'auto'; mp.style.top = 'auto';
+      }
+    }
+
+    // close mini-player (destroy player and clear state)
+    function closeMini(){
+      try{ if(YTPlayer && YTPlayer.destroy) YTPlayer.destroy(); } catch(e){}
+      YTPlayer = null;
+      clearState();
+      hideMini();
+      $('miniSlot').innerHTML = '';
+      if(saveInterval) { clearInterval(saveInterval); saveInterval = null; }
+    }
+
+    // toggle play/pause in mini
+    function togglePlayPause(){
+      if(!YTPlayer) return;
+      const state = YTPlayer.getPlayerState();
+      if(state === YT.PlayerState.PLAYING) YTPlayer.pauseVideo();
+      else YTPlayer.playVideo();
+    }
+
+    // === Dragging logic for mini (desktop) ===
+    function enableMiniDrag(){
+      const mp = $('miniPlayer');
+      let dragging=false, startX=0, startY=0, origLeft=0, origTop=0;
+      // don't enable dragging on small screens
+      if(window.innerWidth <= 480) return;
+
+      mp.addEventListener('pointerdown', e=>{
+        if(e.button !== 0) return;
+        dragging = true; mp.classList.add('dragging');
+        startX = e.clientX; startY = e.clientY;
+        const rect = mp.getBoundingClientRect();
+        origLeft = rect.left; origTop = rect.top;
+        mp.setPointerCapture && mp.setPointerCapture(e.pointerId);
+      });
+      mp.addEventListener('pointermove', e=>{
+        if(!dragging) return;
+        const dx = e.clientX - startX; const dy = e.clientY - startY;
+        const newLeft = origLeft + dx; const newTop = origTop + dy;
+        const maxLeft = window.innerWidth - mp.offsetWidth - 8;
+        const maxTop = window.innerHeight - mp.offsetHeight - 8;
+        mp.style.left = Math.max(8, Math.min(maxLeft, newLeft)) + 'px';
+        mp.style.top = Math.max(8, Math.min(maxTop, newTop)) + 'px';
+        mp.style.right = 'auto'; mp.style.bottom = 'auto';
+      });
+      mp.addEventListener('pointerup', e=>{
+        if(!dragging) return;
+        dragging=false; mp.classList.remove('dragging');
+        mp.releasePointerCapture && mp.releasePointerCapture(e.pointerId);
+        const rect = mp.getBoundingClientRect();
+        saveState({ ...(loadState()||{}), pos: { left: rect.left+'px', top: rect.top+'px' } });
+      });
+    }
+
+    /* ========== Wire UI buttons ========== */
+    $('minimizeBtn').addEventListener('click', () => {
+      if(!minimizeAllowed) return;
+      minimizeToMini();
+    });
+
+    $('miniClose').addEventListener('click', closeMini);
+    $('miniPlayPause').addEventListener('click', togglePlayPause);
+
+    // click outside modal to close (minimize if allowed)
+    $('playerModal').addEventListener('click', (e)=>{
+      if(e.target === $('playerModal')){
+        if(minimizeAllowed) minimizeToMini();
+      }
+    });
+
+    // ESC key handling
+    window.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape'){
+        if(modalOpen && minimizeAllowed) minimizeToMini();
+        else if(!modalOpen && $('miniPlayer').style.display === 'block') closeMini();
+      }
+    });
+
+    /* ========== Persisted mini-player restore ========== */
+    function restoreMiniFromState(){
+      const s = loadState();
+      if(!s || !s.videoId) return;
+      currentVideoId = s.videoId; currentTitle = s.title || '';
+      const t = s.time || 0;
+      const miniSlot = $('miniSlot');
+      // create player in mini slot
+      createPlayerIn(miniSlot, currentVideoId, t, true, (p)=>{
+        $('miniTitle').textContent = currentTitle || 'Playing...';
+        showMini();
+        if(s.pos) setMiniPosition(s.pos);
+        if(saveInterval) clearInterval(saveInterval);
+        saveInterval = setInterval(()=>{
+          try {
+            const cur = Math.floor(YTPlayer.getCurrentTime());
+            const st = loadState()||{};
+            st.time = cur; st.videoId = currentVideoId; st.title = currentTitle; st.minimized = true; st.pos = getMiniPosition();
+            saveState(st);
+          } catch(e){}
+        },2000);
+      });
+    }
+
+    /* ========== Init: fetch channel and videos, separate shorts ========== */
+    (async function init(){
+      try {
+        const channelId = await findChannelId(CHANNEL_QUERY);
+        const ch = await getChannelDetails(channelId);
+        if(!ch.items || !ch.items.length) throw new Error('Channel data not found');
+        const info = ch.items[0];
+        const snippet = info.snippet || {};
+        const branding = info.brandingSettings || {};
+        const stats = info.statistics || {};
+        // render header
+        const banner = (branding && branding.image && (branding.image.bannerExternalUrl || branding.image.bannerImageUrl)) || snippet.thumbnails?.high?.url || '';
+        if(banner) $('banner').style.backgroundImage = `url("${banner}")`;
+        $('avatar').src = snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url || '';
+        $('channelTitle').textContent = snippet.title || '';
+        $('channelDesc').textContent = (snippet.description && snippet.description.length>220)? snippet.description.slice(0,220)+'…' : snippet.description || '';
+        $('subscriberCount').textContent = (stats.hiddenSubscriberCount ? '' : fmtCount(stats.subscriberCount)+' subscribers');
+        $('videoCount').textContent = (stats.videoCount ? fmtCount(stats.videoCount) + ' videos' : '');
+
+        const uploads = info.contentDetails && info.contentDetails.relatedPlaylists && info.contentDetails.relatedPlaylists.uploads;
+        if(!uploads) throw new Error('Uploads playlist not found');
+        $('loader').textContent = 'Fetching all videos (may take a few seconds)...';
+
+        const playlistItems = await getAllPlaylistItems(uploads);
+        if(!playlistItems.length){ $('loader').textContent='No videos found'; return; }
+
+        const allIds = playlistItems.map(it => (it.snippet && it.snippet.resourceId && it.snippet.resourceId.videoId) || (it.contentDetails && it.contentDetails.videoId)).filter(Boolean);
+        const details = await getVideosDetails(allIds);
+        const dmap = {}; details.forEach(d=> dmap[d.id]=d);
+
+        const shorts = [], longs = [];
+        playlistItems.forEach(it => {
+          const vid = (it.snippet && it.snippet.resourceId && it.snippet.resourceId.videoId) || (it.contentDetails && it.contentDetails.videoId);
+          const det = dmap[vid];
+          const duration = det ? parseIsoDuration(det.contentDetails?.duration) : 0;
+          if(duration > 0 && duration < SHORT_THRESHOLD_SEC) shorts.push({ item: it, det: det });
+          else longs.push({ item: it, det: det });
+        });
+
+        $('loader').style.display = 'none';
+        renderLists(longs, shorts);
+        wireUI(longs, shorts, dmap);
+        enableMiniDrag();
+        // try restore mini from saved state
+        setTimeout(()=>{ try { restoreMiniFromState(); } catch(e){} }, 800);
+
+      } catch(err){
+        console.error(err);
+        $('loader').style.display='none'; $('error').style.display='block'; $('error').textContent = 'Failed to load channel: ' + (err.message || '');
+      }
+    })();
+
+    function renderLists(longs, shorts){
+      const vGrid = $('videosGrid'), sGrid = $('shortsGrid');
+      vGrid.innerHTML=''; sGrid.innerHTML='';
+      longs.forEach(o => vGrid.appendChild(makeVideoCard(o.item, o.det)));
+      shorts.forEach(o => sGrid.appendChild(makeVideoCard(o.item, o.det)));
+    }
+
+    /* ========== UI wiring: tabs, search, sort, topbar search ========== */
+    function wireUI(longs, shorts, detailsMap){
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(t => t.addEventListener('click', ()=>{
+        tabs.forEach(x=>x.classList.remove('active'));
+        t.classList.add('active');
+        if(t.dataset.tab === 'videos'){ $('videosSection').style.display='block'; $('shortsSection').style.display='none'; }
+        else { $('videosSection').style.display='none'; $('shortsSection').style.display='block'; }
+      }));
+
+      const localSearch = $('localSearch');
+      const latestBtn = $('latestBtn'), popularBtn = $('popularBtn'), oldestBtn = $('oldestBtn');
+
+      function applyFilterAndRender(){
+        const q = localSearch.value.trim().toLowerCase();
+        const activeTab = document.querySelector('.tab.active').dataset.tab;
+        if(activeTab === 'videos'){
+          let filtered = longs.slice();
+          if(q) filtered = filtered.filter(o => (o.item.snippet.title||'').toLowerCase().includes(q) || (o.item.snippet.description||'').toLowerCase().includes(q));
+          filtered.sort((a,b)=> new Date(b.item.snippet.publishedAt) - new Date(a.item.snippet.publishedAt));
+          const grid = $('videosGrid'); grid.innerHTML=''; filtered.forEach(o=> grid.appendChild(makeVideoCard(o.item, o.det)));
+        } else {
+          let filtered = shorts.slice();
+          if(q) filtered = filtered.filter(o => (o.item.snippet.title||'').toLowerCase().includes(q));
+          filtered.sort((a,b)=> new Date(b.item.snippet.publishedAt) - new Date(a.item.snippet.publishedAt));
+          const grid = $('shortsGrid'); grid.innerHTML=''; filtered.forEach(o=> grid.appendChild(makeVideoCard(o.item, o.det)));
+        }
+      }
+
+      localSearch.addEventListener('input', applyFilterAndRender);
+
+      latestBtn.addEventListener('click', ()=>{
+        const activeTab = document.querySelector('.tab.active').dataset.tab;
+        if(activeTab==='videos'){
+          const grid=$('videosGrid'); grid.innerHTML=''; longs.slice().sort((a,b)=>new Date(b.item.snippet.publishedAt)-new Date(a.item.snippet.publishedAt)).forEach(o=>grid.appendChild(makeVideoCard(o.item,o.det)));
+        } else {
+          const grid=$('shortsGrid'); grid.innerHTML=''; shorts.slice().sort((a,b)=>new Date(b.item.snippet.publishedAt)-new Date(a.item.snippet.publishedAt)).forEach(o=>grid.appendChild(makeVideoCard(o.item,o.det)));
+        }
+      });
+
+      oldestBtn.addEventListener('click', ()=>{
+        const activeTab = document.querySelector('.tab.active').dataset.tab;
+        if(activeTab==='videos'){
+          const grid=$('videosGrid'); grid.innerHTML=''; longs.slice().sort((a,b)=>new Date(a.item.snippet.publishedAt)-new Date(b.item.snippet.publishedAt)).forEach(o=>grid.appendChild(makeVideoCard(o.item,o.det)));
+        } else {
+          const grid=$('shortsGrid'); grid.innerHTML=''; shorts.slice().sort((a,b)=>new Date(a.item.snippet.publishedAt)-new Date(b.item.snippet.publishedAt)).forEach(o=>grid.appendChild(makeVideoCard(o.item,o.det)));
+        }
+      });
+
+      popularBtn.addEventListener('click', ()=>{
+        const activeTab = document.querySelector('.tab.active').dataset.tab;
+        if(activeTab==='videos'){
+          const grid=$('videosGrid'); grid.innerHTML='';
+          longs.slice().sort((a,b)=> ((detailsMap[b.item.snippet.resourceId.videoId]?.statistics?.viewCount|0) - (detailsMap[a.item.snippet.resourceId.videoId]?.statistics?.viewCount|0)) ).forEach(o=>grid.appendChild(makeVideoCard(o.item,o.det)));
+        } else {
+          const grid=$('shortsGrid'); grid.innerHTML='';
+          shorts.slice().sort((a,b)=> ((detailsMap[b.item.snippet.resourceId.videoId]?.statistics?.viewCount|0) - (detailsMap[a.item.snippet.resourceId.videoId]?.statistics?.viewCount|0)) ).forEach(o=>grid.appendChild(makeVideoCard(o.item,o.det)));
+        }
+      });
+
+      // topbar search button triggers channel-limited search using YouTube search endpoint
+      $('searchBtn').addEventListener('click', async ()=> {
+        const q = $('globalSearch').value.trim();
+        if(!q) return;
+        try {
+          $('loader').style.display='block'; $('loader').textContent='Searching channel...';
+          const channelId = await findChannelId(CHANNEL_QUERY);
+          const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&channelId=${channelId}&q=${encodeURIComponent(q)}&maxResults=50&key=${API_KEY}`;
+          const data = await fetchJson(url);
+          const items = (data.items || []).filter(it=>it.id && it.id.videoId);
+          if(!items.length){ $('loader').textContent='No results'; setTimeout(()=>$('loader').style.display='none',1200); return; }
+          const adapted = items.map(it => ({ snippet: it.snippet, id: it.id }));
+          const wrapped = adapted.map(a => ({ snippet: { ...a.snippet, resourceId: { videoId: a.id.videoId }, title: a.snippet.title, thumbnails: a.snippet.thumbnails, publishedAt: a.snippet.publishedAt } }));
+          const ids = items.map(it => it.id.videoId);
+          const dets = await getVideosDetails(ids);
+          const detMap = {}; dets.forEach(d=>detMap[d.id]=d);
+          const resLongs = [], resShorts = [];
+          wrapped.forEach(w => {
+            const vid = w.snippet.resourceId.videoId;
+            const dur = parseIsoDuration(detMap[vid]?.contentDetails?.duration);
+            if(dur>0 && dur<SHORT_THRESHOLD_SEC) resShorts.push({ item: w, det: detMap[vid] });
+            else resLongs.push({ item: w, det: detMap[vid] });
+          });
+          document.querySelector('.tab[data-tab="videos"]').click();
+          $('videosGrid').innerHTML=''; $('shortsGrid').innerHTML='';
+          resLongs.forEach(o=> $('videosGrid').appendChild(makeVideoCard(o.item,o.det)));
+          resShorts.forEach(o=> $('shortsGrid').appendChild(makeVideoCard(o.item,o.det)));
+          $('loader').style.display='none';
+        } catch(e){
+          console.error(e); $('loader').style.display='none'; $('error').style.display='block'; $('error').textContent = 'Search failed: ' + (e.message || '');
+        }
+      });
+      // enter to search
+      $('globalSearch').addEventListener('keyup', (ev)=> { if(ev.key === 'Enter') $('searchBtn').click(); });
+    }
+
+    /* ========== when YT API ready (global) ========== */
+    window.onYouTubeIframeAPIReady = function(){ /* API is available; players created on demand */ };
+
+  })();
+  </script>
+</body>
+</html>
