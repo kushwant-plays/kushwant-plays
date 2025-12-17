@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../config/supabase';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
-import { Doughnut, Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Doughnut } from 'react-chartjs-2';
 
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 const Stats = () => {
   const [games, setGames] = useState([]);
@@ -13,28 +13,32 @@ const Stats = () => {
   const [platformFilter, setPlatformFilter] = useState('all');
 
   useEffect(() => {
-    loadGames();
-    
-    const subscription = supabase
-      .channel('games')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'games' }, () => {
-        loadGames();
-      })
-      .subscribe();
-    
-    return () => subscription.unsubscribe();
+    loadGamesWithCache();
   }, []);
   
-  const loadGames = async () => {
+  const loadGamesWithCache = async () => {
+    // Check cache first (10 minutes for stats)
+    const cached = localStorage.getItem('stats_cache');
+    const cacheTime = localStorage.getItem('stats_cache_time');
+    
+    if (cached && cacheTime && Date.now() - parseInt(cacheTime) < 600000) {
+      setGames(JSON.parse(cached));
+      return;
+    }
+    
+    // Load from database with only needed fields
     const { data, error } = await supabase
       .from('games')
-      .select('*');
+      .select('id, title, img, type, views, downloads, priority');
     
     if (error) {
       console.error('Error loading games:', error);
       return;
     }
     
+    // Cache the data
+    localStorage.setItem('stats_cache', JSON.stringify(data || []));
+    localStorage.setItem('stats_cache_time', Date.now().toString());
     setGames(data || []);
   };
 
@@ -56,15 +60,17 @@ const Stats = () => {
     }]
   };
 
-  const filteredGames = games
-    .filter(g => g.title?.toLowerCase().includes(searchTerm.toLowerCase()))
-    .filter(g => platformFilter === 'all' || g.type === platformFilter)
+  const filteredGames = (games || [])
+    .filter(g => g?.title?.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter(g => platformFilter === 'all' || g?.type === platformFilter)
     .sort((a, b) => {
       if (sortKey === 'title') {
-        return sortOrder === 'asc' ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title);
+        const titleA = a?.title || '';
+        const titleB = b?.title || '';
+        return sortOrder === 'asc' ? titleA.localeCompare(titleB) : titleB.localeCompare(titleA);
       }
-      const valA = a[sortKey] || 0;
-      const valB = b[sortKey] || 0;
+      const valA = a?.[sortKey] || 0;
+      const valB = b?.[sortKey] || 0;
       return sortOrder === 'asc' ? valA - valB : valB - valA;
     });
 
@@ -139,18 +145,26 @@ const Stats = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredGames.map((game, i) => (
-              <tr key={game.id} style={{ ':hover': { background: 'rgba(255, 255, 255, 0.05)' } }}>
-                <td style={{ padding: '14px 12px' }}>{i + 1}</td>
-                <td style={{ padding: '14px 12px' }}>
-                  <img src={game.img} alt="" style={{ width: '60px', height: '40px', objectFit: 'cover', borderRadius: '6px', marginRight: '10px', verticalAlign: 'middle' }} />
-                  {game.title}
-                </td>
-                <td style={{ padding: '14px 12px' }}>{game.views || 0}</td>
-                <td style={{ padding: '14px 12px' }}>{game.downloads || 0}</td>
-                <td style={{ padding: '14px 12px' }}>{game.type?.toUpperCase() || '-'}</td>
-              </tr>
-            ))}
+            {filteredGames.map((game, i) => {
+              if (!game?.id) return null;
+              return (
+                <tr key={game.id} style={{ ':hover': { background: 'rgba(255, 255, 255, 0.05)' } }}>
+                  <td style={{ padding: '14px 12px' }}>{i + 1}</td>
+                  <td style={{ padding: '14px 12px' }}>
+                    <img 
+                      src={game.img || '/assets/playslogo.png'} 
+                      alt="" 
+                      style={{ width: '60px', height: '40px', objectFit: 'cover', borderRadius: '6px', marginRight: '10px', verticalAlign: 'middle' }}
+                      onError={(e) => e.target.src = '/assets/playslogo.png'}
+                    />
+                    {game.title || 'Untitled'}
+                  </td>
+                  <td style={{ padding: '14px 12px' }}>{game.views || 0}</td>
+                  <td style={{ padding: '14px 12px' }}>{game.downloads || 0}</td>
+                  <td style={{ padding: '14px 12px' }}>{game.type?.toUpperCase() || '-'}</td>
+                </tr>
+              );
+            }).filter(Boolean)}
           </tbody>
         </table>
       </div>

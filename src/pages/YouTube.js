@@ -13,11 +13,26 @@ const YouTube = () => {
   const loadYouTubeData = async () => {
     try {
       const API_KEY = process.env.REACT_APP_YOUTUBE_API_KEY;
+      if (!API_KEY) {
+        console.error('YouTube API key missing');
+        setLoading(false);
+        return;
+      }
+      
       const CHANNEL_QUERY = 'kushwant20';
       
       // Find channel ID
       const searchRes = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${CHANNEL_QUERY}&maxResults=1&key=${API_KEY}`);
       const searchData = await searchRes.json();
+      
+      if (searchData.error) {
+        console.error('YouTube API Error:', searchData.error);
+        if (searchData.error.code === 403) {
+          console.error('YouTube API quota exceeded');
+        }
+        setLoading(false);
+        return;
+      }
       
       if (!searchData.items?.length) throw new Error('Channel not found');
       
@@ -65,6 +80,9 @@ const YouTube = () => {
       setShorts(shortsList);
     } catch (error) {
       console.error('Error loading YouTube data:', error);
+      // Set empty arrays to prevent crashes
+      setVideos([]);
+      setShorts([]);
     }
     setLoading(false);
   };

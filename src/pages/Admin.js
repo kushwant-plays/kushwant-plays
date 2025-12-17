@@ -73,9 +73,10 @@ const Admin = () => {
   };
 
   const loadGames = async () => {
+    // Load only essential fields for admin management
     const { data } = await supabase
       .from('games')
-      .select('*')
+      .select('id, title, img, type, priority, views, downloads, created_at')
       .order('priority', { ascending: false })
       .order('created_at', { ascending: false });
     setGames(data || []);
@@ -150,8 +151,6 @@ const Admin = () => {
         ).sort((a, b) => (b.priority || 0) - (a.priority || 0))
       );
       setStatus(`✅ Priority updated to ${newPriority}`);
-      // Also refresh from server
-      loadGames();
     }
   };
 
@@ -187,8 +186,6 @@ const Admin = () => {
     setGames(newGames.sort((a, b) => (b.priority || 0) - (a.priority || 0)));
     setDraggedItem(null);
     setStatus('✅ Games reordered successfully!');
-    // Also refresh from server
-    loadGames();
   };
 
   const updateGame = async (id, updatedData) => {
@@ -210,7 +207,6 @@ const Admin = () => {
       
       setEditingGame(null);
       setStatus('✅ Game updated successfully!');
-      loadGames();
     } catch (error) {
       setStatus('❌ Error: ' + error.message);
     }

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../config/supabase';
 import { useNavigate } from 'react-router-dom';
-import AdminModal from '../components/AdminModal';
 import SEO from '../components/SEO';
 
 const Home = () => {
@@ -16,7 +15,7 @@ const Home = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadGames();
+    loadGamesWithCache();
     
     // Background slideshow animation
     const images = document.querySelectorAll('.bg-slideshow img');
@@ -69,10 +68,20 @@ const Home = () => {
     filterGames();
   }, [games, searchTerm, filter]);
 
-  const loadGames = async () => {
+  const loadGamesWithCache = async () => {
+    // Check cache first (5 minutes)
+    const cached = localStorage.getItem('games_cache');
+    const cacheTime = localStorage.getItem('games_cache_time');
+    
+    if (cached && cacheTime && Date.now() - parseInt(cacheTime) < 300000) {
+      setGames(JSON.parse(cached));
+      return;
+    }
+    
+    // Load from database
     const { data, error } = await supabase
       .from('games')
-      .select('*')
+      .select('id, title, img, type, priority, created_at')
       .order('priority', { ascending: false })
       .order('created_at', { ascending: false });
     
@@ -81,20 +90,23 @@ const Home = () => {
       return;
     }
     
+    // Cache the data
+    localStorage.setItem('games_cache', JSON.stringify(data || []));
+    localStorage.setItem('games_cache_time', Date.now().toString());
     setGames(data || []);
   };
 
   const filterGames = () => {
-    let filtered = games;
+    let filtered = games || [];
     
     if (searchTerm) {
       filtered = filtered.filter(game => 
-        game.title.toLowerCase().includes(searchTerm.toLowerCase())
+        game?.title?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     
     if (filter !== 'all') {
-      filtered = filtered.filter(game => game.type === filter);
+      filtered = filtered.filter(game => game?.type === filter);
     }
     
     setFilteredGames(filtered);
@@ -245,33 +257,40 @@ const Home = () => {
             )}
           </div>
           
-          {filteredGames.map((game, index) => (
-            <div 
-              key={game.id} 
-              className="gallery-item"
-              onClick={() => navigate(`/game/${game.id}`)}
-              style={{ position: 'relative' }}
-            >
-              <img src={game.img} alt={game.title} />
-              {index === 0 && (
-                <div style={{
-                  position: 'absolute',
-                  top: '10px',
-                  left: '10px',
-                  background: '#ff4747',
-                  color: '#fff',
-                  padding: '4px 8px',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  borderRadius: '6px',
-                  boxShadow: '0 0 10px rgba(255,71,71,0.5)'
-                }}>
-                  ⭐ Recommended
-                </div>
-              )}
-              <div className="game-title">{game.title}</div>
-            </div>
-          ))}
+          {filteredGames?.map((game, index) => {
+            if (!game?.id || !game?.title) return null;
+            return (
+              <div 
+                key={game.id} 
+                className="gallery-item"
+                onClick={() => navigate(`/game/${game.id}`)}
+                style={{ position: 'relative' }}
+              >
+                <img 
+                  src={game.img || '/assets/playslogo.png'} 
+                  alt={game.title}
+                  onError={(e) => e.target.src = '/assets/playslogo.png'}
+                />
+                {index === 0 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '10px',
+                    left: '10px',
+                    background: '#ff4747',
+                    color: '#fff',
+                    padding: '4px 8px',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    borderRadius: '6px',
+                    boxShadow: '0 0 10px rgba(255,71,71,0.5)'
+                  }}>
+                    ⭐ Recommended
+                  </div>
+                )}
+                <div className="game-title">{game.title}</div>
+              </div>
+            );
+          })?.filter(Boolean)}
         </div>
       </main>
 

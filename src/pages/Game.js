@@ -18,6 +18,15 @@ const Game = () => {
   }, [id]);
 
   const loadGame = async () => {
+    // Check cache first (15 minutes)
+    const cached = localStorage.getItem(`game_${id}`);
+    const cacheTime = localStorage.getItem(`game_${id}_time`);
+    
+    if (cached && cacheTime && Date.now() - parseInt(cacheTime) < 900000) {
+      setGame(JSON.parse(cached));
+      return;
+    }
+    
     const { data, error } = await supabase
       .from('games')
       .select('*')
@@ -29,15 +38,20 @@ const Game = () => {
       return;
     }
     
+    // Cache the data
+    localStorage.setItem(`game_${id}`, JSON.stringify(data));
+    localStorage.setItem(`game_${id}_time`, Date.now().toString());
     setGame(data);
   };
 
   const loadComments = async () => {
+    // Load only recent 20 comments to reduce reads
     const { data, error } = await supabase
       .from('comments')
-      .select('*')
+      .select('id, username, text, created_at')
       .eq('game_id', id)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(20);
     
     if (error) {
       console.error('Error loading comments:', error);
@@ -61,6 +75,10 @@ const Game = () => {
   };
 
   const handleDownload = () => {
+    if (!game?.download) {
+      alert('Download link not available');
+      return;
+    }
     trackDownload();
     window.open(game.download, '_blank');
   };
@@ -170,7 +188,7 @@ const Game = () => {
               <div style={{ marginBottom: '50px' }}>
                 <h2 style={{ fontSize: '2rem', marginBottom: '20px', color: '#ff4747' }}>📸 Screenshots</h2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
-                  {game.screenshots.map((screenshot, index) => (
+                  {game.screenshots?.filter(Boolean).map((screenshot, index) => (
                     <div 
                       key={index}
                       style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.2s' }}
@@ -178,14 +196,19 @@ const Game = () => {
                       onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
                       onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                     >
-                      <img src={screenshot} alt={`Screenshot ${index + 1}`} style={{ width: '100%', height: '150px', objectFit: 'cover' }} />
+                      <img 
+                        src={screenshot} 
+                        alt={`Screenshot ${index + 1}`} 
+                        style={{ width: '100%', height: '150px', objectFit: 'cover' }}
+                        onError={(e) => e.target.style.display = 'none'}
+                      />
                       <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s' }}
                            onMouseOver={(e) => e.target.style.opacity = 1}
                            onMouseOut={(e) => e.target.style.opacity = 0}>
                         <span style={{ color: '#fff', fontSize: '24px' }}>🔍</span>
                       </div>
                     </div>
-                  ))}
+                  )) || []}
                 </div>
               </div>
             )}
