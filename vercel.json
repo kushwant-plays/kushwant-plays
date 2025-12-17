@@ -1,5 +1,4 @@
 {
-  "name": "kushwant-plays",
   "version": 2,
   "builds": [
     {
@@ -14,6 +13,10 @@
     {
       "src": "/static/(.*)",
       "dest": "/static/$1"
+    },
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
     },
     {
       "src": "/(.*)",
