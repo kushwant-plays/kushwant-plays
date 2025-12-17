@@ -2,7 +2,7 @@
   "name": "kushwant-plays",
   "version": "1.0.0",
   "private": true,
-  "homepage": "https://kushwant-plays.github.io/kushwant-plays",
+  "homepage": "https://prady346.github.io/kushwant-plays",
   "dependencies": {
     "@supabase/supabase-js": "^2.88.0",
     "chart.js": "^4.2.1",
