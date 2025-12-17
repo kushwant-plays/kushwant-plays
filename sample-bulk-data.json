@@ -1,0 +1,28 @@
+[
+  {
+    "title": "Sample Game 1",
+    "description": "An exciting action-adventure game with stunning graphics and immersive gameplay.",
+    "type": "pc",
+    "img": "https://via.placeholder.com/400x300/ff4747/ffffff?text=Game+1",
+    "download": "https://example.com/download1",
+    "priority": 15,
+    "screenshots": [
+      "https://via.placeholder.com/800x600/333333/ffffff?text=Screenshot+1",
+      "https://via.placeholder.com/800x600/666666/ffffff?text=Screenshot+2",
+      "https://via.placeholder.com/800x600/999999/ffffff?text=Screenshot+3"
+    ],
+    "trailer_url": "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4"
+  },
+  {
+    "title": "Sample Game 2",
+    "description": "A thrilling racing game with realistic physics and multiple tracks.",
+    "type": "android",
+    "img": "https://via.placeholder.com/400x300/4CAF50/ffffff?text=Game+2",
+    "download": "https://example.com/download2",
+    "priority": 12,
+    "screenshots": [
+      "https://via.placeholder.com/800x600/4CAF50/ffffff?text=Racing+1",
+      "https://via.placeholder.com/800x600/8BC34A/ffffff?text=Racing+2"
+    ]
+  }
+]

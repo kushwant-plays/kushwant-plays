@@ -244,12 +244,13 @@
   </div>
 
   <!-- Load YouTube IFrame API -->
+  <script src="config.js"></script>
   <script src="https://www.youtube.com/iframe_api"></script>
 
   <script>
   (function(){
     /* ========== CONFIG ========== */
-    const API_KEY = 'AIzaSyCT68zgBegab2Sczx9IF5nkCLi9ZpSg4IQ';
+    const API_KEY = window.CONFIG.YOUTUBE_API_KEY;
     const CHANNEL_QUERY = 'kushwant20';
     const SHORT_THRESHOLD_SEC = 60;
 
