@@ -9,8 +9,7 @@ const Home = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [showVideoModal, setShowVideoModal] = useState(false);
-  const [playingVideo, setPlayingVideo] = useState(false);
+
 
   const navigate = useNavigate();
 
@@ -116,17 +115,7 @@ const Home = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const toggleVideo = () => {
-    setPlayingVideo(!playingVideo);
-  };
 
-  const openVideoFullscreen = () => {
-    setShowVideoModal(true);
-  };
-
-  const closeVideoModal = () => {
-    setShowVideoModal(false);
-  };
 
   return (
     <div>
@@ -214,47 +203,27 @@ const Home = () => {
 
         <div className="gallery-grid">
           <div className="gallery-item tutorial-item">
-            {!playingVideo ? (
-              <div onClick={toggleVideo} style={{ position: 'relative', cursor: 'pointer' }}>
-                <video width="100%" height="180" style={{ objectFit: 'cover', borderRadius: '12px' }}>
-                  <source src="/assets/tutorial.mp4" type="video/mp4" />
-                </video>
-                <div className="play-overlay">
-                  <div className="play-button">▶</div>
-                </div>
-                <div style={{
-                  position: 'absolute',
-                  top: '10px',
-                  left: '10px',
-                  background: '#ff4747',
-                  color: '#fff',
-                  padding: '4px 8px',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  borderRadius: '6px',
-                  boxShadow: '0 0 10px rgba(255,71,71,0.5)'
-                }}>
-                  ⭐ Recommended
-                </div>
-                <div className="game-title">📺 Tutorial: How to Download Games</div>
+            <div onClick={() => window.open('https://www.youtube.com/@kushwantplays', '_blank')} style={{ position: 'relative', cursor: 'pointer' }}>
+              <div style={{ width: '100%', height: '180px', background: 'linear-gradient(135deg, #ff4747 0%, #ff6b6b 100%)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                <div style={{ fontSize: '48px', marginBottom: '10px' }}>▶️</div>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: '#fff' }}>Watch Tutorial</div>
               </div>
-            ) : (
-              <div className="video-player">
-                <video 
-                  width="100%" 
-                  height="180" 
-                  controls 
-                  autoPlay 
-                  style={{ borderRadius: '12px' }}
-                >
-                  <source src="/assets/tutorial.mp4" type="video/mp4" />
-                </video>
-                <div className="video-controls">
-                  <button onClick={toggleVideo}>Close</button>
-                  <button onClick={openVideoFullscreen}>Fullscreen</button>
-                </div>
+              <div style={{
+                position: 'absolute',
+                top: '10px',
+                left: '10px',
+                background: '#fff',
+                color: '#ff4747',
+                padding: '4px 8px',
+                fontSize: '12px',
+                fontWeight: '600',
+                borderRadius: '6px',
+                boxShadow: '0 0 10px rgba(255,71,71,0.5)'
+              }}>
+                ⭐ Recommended
               </div>
-            )}
+              <div className="game-title">📺 Tutorial: How to Download Games</div>
+            </div>
           </div>
           
           {filteredGames?.map((game, index) => {
@@ -300,22 +269,7 @@ const Home = () => {
         </button>
       )}
 
-      {showVideoModal && (
-        <div className="video-modal" onClick={closeVideoModal}>
-          <div className="video-container" onClick={(e) => e.stopPropagation()}>
-            <button className="close-btn" onClick={closeVideoModal}>×</button>
-            <video 
-              width="100%" 
-              height="100%" 
-              controls 
-              autoPlay 
-              style={{ borderRadius: '8px' }}
-            >
-              <source src="/assets/tutorial.mp4" type="video/mp4" />
-            </video>
-          </div>
-        </div>
-      )}
+
 
     </div>
   );
