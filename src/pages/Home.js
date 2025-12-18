@@ -92,6 +92,7 @@ const Home = () => {
     // Cache the data
     localStorage.setItem('games_cache', JSON.stringify(data || []));
     localStorage.setItem('games_cache_time', Date.now().toString());
+    console.log('All games:', data);
     setGames(data || []);
   };
 
