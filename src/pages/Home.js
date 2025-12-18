@@ -210,8 +210,9 @@ const Home = () => {
                 preload="metadata"
                 style={{ width: '100%', height: '180px', borderRadius: '12px', objectFit: 'cover' }}
                 onClick={(e) => e.target.requestFullscreen()}
+                crossOrigin="anonymous"
               >
-                <source src="/assets/tutorial.mp4" type="video/mp4" />
+                <source src="https://drive.google.com/uc?export=download&id=1ExdpITjQd-AumQhbghJqJwXrxcHbTjOV" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
               <div style={{
