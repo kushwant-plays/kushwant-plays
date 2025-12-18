@@ -209,10 +209,8 @@ const Home = () => {
                 controls 
                 preload="metadata"
                 style={{ width: '100%', height: '180px', borderRadius: '12px', objectFit: 'cover' }}
-                poster="/assets/playslogo.png"
-                onError={(e) => console.log('Video error:', e)}
+                onClick={(e) => e.target.requestFullscreen()}
               >
-                <source src="/assets/tutorial_compressed.mp4" type="video/mp4" />
                 <source src="/assets/tutorial.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
