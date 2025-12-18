@@ -211,7 +211,7 @@ const Home = () => {
                 style={{ width: '100%', height: '180px', borderRadius: '12px', objectFit: 'cover' }}
                 poster="/assets/playslogo.png"
               >
-                <source src="https://github.com/kushwant-plays/kushwant-plays/raw/main/public/assets/tutorial.mp4" type="video/mp4" />
+                <source src="https://cdn.jsdelivr.net/gh/kushwant-plays/kushwant-plays@main/public/assets/tutorial.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
               <div style={{
