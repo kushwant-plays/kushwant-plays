@@ -207,12 +207,13 @@ const Home = () => {
             <div style={{ position: 'relative', cursor: 'pointer' }}>
               <video 
                 controls 
-                preload="auto"
-                muted
-                style={{ width: '100%', height: '180px', borderRadius: '12px', objectFit: 'cover', backgroundColor: '#000' }}
+                preload="metadata"
+                style={{ width: '100%', height: '180px', borderRadius: '12px', objectFit: 'cover' }}
+                poster="/assets/playslogo.png"
+                onError={(e) => console.log('Video error:', e)}
               >
+                <source src="/assets/tutorial_compressed.mp4" type="video/mp4" />
                 <source src="/assets/tutorial.mp4" type="video/mp4" />
-                <source src="https://github.com/kushwant-plays/kushwant-plays/raw/main/public/assets/tutorial.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
               <div style={{
