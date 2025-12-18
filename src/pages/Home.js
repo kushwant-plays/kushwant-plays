@@ -203,34 +203,31 @@ const Home = () => {
         </div>
 
         <div className="gallery-grid">
-          <div className="gallery-item tutorial-item">
-            <div style={{ position: 'relative', cursor: 'pointer' }}>
-              <video 
-                controls 
-                preload="metadata"
-                style={{ width: '100%', height: '180px', borderRadius: '12px', objectFit: 'cover' }}
-                onClick={(e) => e.target.requestFullscreen()}
-                crossOrigin="anonymous"
-              >
-                <source src="https://drive.google.com/uc?export=download&id=1ExdpITjQd-AumQhbghJqJwXrxcHbTjOV" type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-              <div style={{
-                position: 'absolute',
-                top: '10px',
-                left: '10px',
-                background: '#fff',
-                color: '#ff4747',
-                padding: '4px 8px',
-                fontSize: '12px',
-                fontWeight: '600',
-                borderRadius: '6px',
-                boxShadow: '0 0 10px rgba(255,71,71,0.5)'
-              }}>
-                ⭐ Recommended
-              </div>
-              <div className="game-title">📺 Tutorial: How to Download Games</div>
+          <div 
+            className="gallery-item tutorial-item"
+            onClick={() => window.open('https://drive.google.com/file/d/1ExdpITjQd-AumQhbghJqJwXrxcHbTjOV/view?usp=drive_link', '_blank')}
+            style={{ cursor: 'pointer' }}
+          >
+            <img 
+              src="/assets/playslogo.png" 
+              alt="Tutorial: How to Download Games"
+              style={{ width: '100%', height: '180px', borderRadius: '12px', objectFit: 'cover' }}
+            />
+            <div style={{
+              position: 'absolute',
+              top: '10px',
+              left: '10px',
+              background: '#fff',
+              color: '#ff4747',
+              padding: '4px 8px',
+              fontSize: '12px',
+              fontWeight: '600',
+              borderRadius: '6px',
+              boxShadow: '0 0 10px rgba(255,71,71,0.5)'
+            }}>
+              ⭐ Recommended
             </div>
+            <div className="game-title">📺 Tutorial: How to Download Games</div>
           </div>
           
           {filteredGames?.map((game, index) => {
