@@ -1,0 +1,18 @@
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Kushwant Plays",
+  "alternateName": ["KushwantPlays", "Kushwant Plays Games"],
+  "url": "https://kushwant-plays.vercel.app/",
+  "description": "Free PC games and Android games download site with tutorials and gaming content",
+  "keywords": "free games, PC games, Android games, kushwant plays, game download, free pc games",
+  "author": {
+    "@type": "Person",
+    "name": "Kushwant Plays"
+  },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://kushwant-plays.vercel.app/?search={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
