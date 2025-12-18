@@ -204,11 +204,15 @@ const Home = () => {
 
         <div className="gallery-grid">
           <div className="gallery-item tutorial-item">
-            <div onClick={() => window.open('https://www.youtube.com/@kushwantplays', '_blank')} style={{ position: 'relative', cursor: 'pointer' }}>
-              <div style={{ width: '100%', height: '180px', background: 'linear-gradient(135deg, #ff4747 0%, #ff6b6b 100%)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                <div style={{ fontSize: '48px', marginBottom: '10px' }}>▶️</div>
-                <div style={{ fontSize: '16px', fontWeight: '600', color: '#fff' }}>Watch Tutorial</div>
-              </div>
+            <div style={{ position: 'relative', cursor: 'pointer' }}>
+              <video 
+                controls 
+                style={{ width: '100%', height: '180px', borderRadius: '12px', objectFit: 'cover' }}
+                poster="/assets/playslogo.png"
+              >
+                <source src="/assets/tutorial.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
               <div style={{
                 position: 'absolute',
                 top: '10px',
