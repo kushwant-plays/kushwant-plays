@@ -207,10 +207,11 @@ const Home = () => {
             <div style={{ position: 'relative', cursor: 'pointer' }}>
               <video 
                 controls 
+                preload="metadata"
                 style={{ width: '100%', height: '180px', borderRadius: '12px', objectFit: 'cover' }}
-                poster="/assets/playslogo.png"
+                poster="./assets/playslogo.png"
               >
-                <source src="/assets/tutorial.mp4" type="video/mp4" />
+                <source src="./assets/tutorial.mp4" type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
               <div style={{
