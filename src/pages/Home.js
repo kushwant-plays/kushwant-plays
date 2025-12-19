@@ -214,7 +214,7 @@ const Home = () => {
             Android
           </button>
           <button 
-            onClick={() => window.open('https://forms.gle/your-google-form-id', '_blank')}
+            onClick={() => navigate('/request-game')}
             style={{ 
               padding: '10px 18px', 
               background: 'linear-gradient(45deg, #ff4747, #ff6b6b)', 
