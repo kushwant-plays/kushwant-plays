@@ -28,6 +28,7 @@ const Admin = () => {
   const [editingGame, setEditingGame] = useState(null);
   const [bulkData, setBulkData] = useState('');
   const [bulkUploading, setBulkUploading] = useState(false);
+  const [gameRequests, setGameRequests] = useState([]);
   const navigate = useNavigate();
 
   const ADMIN_EMAIL = process.env.REACT_APP_ADMIN_EMAIL;
@@ -35,6 +36,7 @@ const Admin = () => {
   useEffect(() => {
     checkAuth();
     loadGames();
+    loadGameRequests();
   }, []);
 
   useEffect(() => {
@@ -80,6 +82,14 @@ const Admin = () => {
       .order('priority', { ascending: false })
       .order('created_at', { ascending: false });
     setGames(data || []);
+  };
+
+  const loadGameRequests = async () => {
+    const { data } = await supabase
+      .from('game_requests')
+      .select('*')
+      .order('created_at', { ascending: false });
+    setGameRequests(data || []);
   };
 
   const handleSubmit = async (e) => {
@@ -288,7 +298,7 @@ const Admin = () => {
             </div>
 
             <div style={{ display: 'flex', gap: '15px', marginBottom: '30px' }}>
-              {['add', 'bulk', 'manage', 'stats', 'performance'].map(tab => (
+              {['add', 'bulk', 'manage', 'requests', 'stats', 'performance'].map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -303,7 +313,7 @@ const Admin = () => {
                     textTransform: 'capitalize'
                   }}
                 >
-                  {tab === 'add' ? '➕ Add Game' : tab === 'bulk' ? '📦 Bulk Upload' : tab === 'manage' ? '⚙️ Manage Games' : tab === 'stats' ? '📊 Statistics' : '⚡ Performance'}
+                  {tab === 'add' ? '➕ Add Game' : tab === 'bulk' ? '📦 Bulk Upload' : tab === 'manage' ? '⚙️ Manage Games' : tab === 'requests' ? `🎮 Requests (${gameRequests.length})` : tab === 'stats' ? '📊 Statistics' : '⚡ Performance'}
                 </button>
               ))}
             </div>
@@ -462,6 +472,76 @@ const Admin = () => {
                 >
                   {bulkUploading ? 'Uploading...' : '📦 Upload Games'}
                 </button>
+              </div>
+            )}
+
+            {activeTab === 'requests' && (
+              <div style={{ background: 'rgba(255,255,255,0.05)', padding: '30px', borderRadius: '12px' }}>
+                <h2 style={{ marginBottom: '25px' }}>🎮 Game Requests ({gameRequests.length})</h2>
+                
+                {gameRequests.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '50px', color: '#999' }}>
+                    <div style={{ fontSize: '48px', marginBottom: '20px' }}>🎮</div>
+                    <div>No game requests yet</div>
+                  </div>
+                ) : (
+                  <div style={{ maxHeight: '600px', overflow: 'auto' }}>
+                    {gameRequests.map((request) => (
+                      <div key={request.id} style={{ 
+                        background: '#2a2a2a', 
+                        padding: '20px', 
+                        borderRadius: '8px', 
+                        marginBottom: '15px',
+                        border: '1px solid #333'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
+                          <div>
+                            <h4 style={{ color: '#ff4747', margin: '0 0 5px 0' }}>{request.game_name}</h4>
+                            <div style={{ fontSize: '12px', color: '#999' }}>
+                              Requested by: {request.user_name} • {new Date(request.created_at).toLocaleDateString()}
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                              onClick={async () => {
+                                const { error } = await supabase
+                                  .from('game_requests')
+                                  .delete()
+                                  .eq('id', request.id);
+                                if (!error) {
+                                  setGameRequests(prev => prev.filter(r => r.id !== request.id));
+                                  setStatus('✅ Request deleted');
+                                }
+                              }}
+                              style={{ background: '#ff4747', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+                            >
+                              🗑️ Delete
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div style={{ marginBottom: '10px' }}>
+                          <strong style={{ color: '#4CAF50' }}>Platform:</strong> {request.platform}
+                        </div>
+                        
+                        {request.description && (
+                          <div style={{ marginBottom: '10px' }}>
+                            <strong style={{ color: '#4CAF50' }}>Description:</strong>
+                            <div style={{ marginTop: '5px', padding: '10px', background: '#1a1a1a', borderRadius: '4px', fontSize: '14px' }}>
+                              {request.description}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {request.user_email && (
+                          <div style={{ fontSize: '12px', color: '#999' }}>
+                            Contact: {request.user_email}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
