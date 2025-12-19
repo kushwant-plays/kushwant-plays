@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
+import { Analytics as VercelAnalytics } from '@vercel/analytics/react';
 import ErrorBoundary from './components/ErrorBoundary';
 import Index from './pages/Index';
 import Home from './pages/Home';
@@ -17,6 +18,7 @@ function App() {
       <HelmetProvider>
         <Router>
           <Analytics />
+          <VercelAnalytics />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/games" element={<Home />} />
