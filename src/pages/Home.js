@@ -16,6 +16,21 @@ const Home = () => {
   useEffect(() => {
     loadGamesWithCache();
     
+    // Real-time subscription for games
+    const subscription = supabase
+      .channel('games_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'games' },
+        (payload) => {
+          console.log('Database change detected:', payload);
+          // Clear cache and reload games
+          localStorage.removeItem('games_cache');
+          localStorage.removeItem('games_cache_time');
+          loadGamesWithCache();
+        }
+      )
+      .subscribe();
+    
     // Background slideshow animation
     const images = document.querySelectorAll('.bg-slideshow img');
     let currentIndex = 0;
@@ -60,6 +75,7 @@ const Home = () => {
       clearInterval(interval);
       document.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('scroll', handleScroll);
+      subscription.unsubscribe();
     };
   }, [navigate]);
 
