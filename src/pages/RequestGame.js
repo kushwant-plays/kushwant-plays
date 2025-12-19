@@ -19,11 +19,20 @@ const RequestGame = () => {
     setLoading(true);
     
     try {
+      // Add timestamp to the data
+      const requestData = {
+        ...formData,
+        created_at: new Date().toISOString()
+      };
+      
       const { error } = await supabase
         .from('game_requests')
-        .insert([formData]);
+        .insert([requestData]);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       
       setStatus('✅ Game request submitted successfully!');
       setFormData({ game_name: '', user_name: '', user_email: '', platform: 'pc', description: '' });
@@ -32,6 +41,7 @@ const RequestGame = () => {
         navigate('/');
       }, 2000);
     } catch (error) {
+      console.error('Request submission error:', error);
       setStatus('❌ Error: ' + error.message);
     }
     setLoading(false);
