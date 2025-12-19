@@ -1110,20 +1110,6 @@ const Admin = () => {
                   </div>
                   
                   <div>
-                    <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Upload Image:</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) uploadImageForEdit(file);
-                      }}
-                      style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%', marginBottom: '10px' }}
-                    />
-                    {editUploading && <div style={{ color: '#ff4747', fontSize: '12px', marginBottom: '10px' }}>⏳ Uploading...</div>}
-                    
-                    <div style={{ textAlign: 'center', margin: '10px 0', color: '#666', fontSize: '12px' }}>── OR ──</div>
-                    
                     <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Image URL:</label>
                     <input name="img" value={editingGame.img || ''} onChange={(e) => setEditingGame({ ...editingGame, img: e.target.value })} placeholder="Image URL" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%' }} required />
                     {editingGame.img && (
@@ -1137,20 +1123,6 @@ const Admin = () => {
                   </div>
                   
                   <div>
-                    <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Upload Trailer:</label>
-                    <input
-                      type="file"
-                      accept="video/*"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) uploadTrailerForEdit(file);
-                      }}
-                      style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%', marginBottom: '10px' }}
-                    />
-                    {editUploadingTrailer && <div style={{ color: '#ff4747', fontSize: '12px', marginBottom: '10px' }}>⏳ Uploading trailer...</div>}
-                    
-                    <div style={{ textAlign: 'center', margin: '10px 0', color: '#666', fontSize: '12px' }}>── OR ──</div>
-                    
                     <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Trailer URL:</label>
                     <input name="trailer_url" value={editingGame.trailer_url || ''} onChange={(e) => setEditingGame({ ...editingGame, trailer_url: e.target.value })} placeholder="Trailer URL" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%' }} />
                     {editingGame.trailer_url && (
@@ -1170,21 +1142,6 @@ const Admin = () => {
                   </div>
                   
                   <div>
-                    <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Upload Screenshots:</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={(e) => {
-                        const files = e.target.files;
-                        if (files && files.length > 0) uploadScreenshotsForEdit(files);
-                      }}
-                      style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%', marginBottom: '10px' }}
-                    />
-                    {editUploadingScreenshots && <div style={{ color: '#ff4747', fontSize: '12px', marginBottom: '10px' }}>⏳ Uploading screenshots...</div>}
-                    
-                    <div style={{ textAlign: 'center', margin: '10px 0', color: '#666', fontSize: '12px' }}>── OR ──</div>
-                    
                     <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Screenshots (one URL per line):</label>
                     <textarea name="screenshots" value={Array.isArray(editingGame.screenshots) ? editingGame.screenshots.join('\n') : (editingGame.screenshots || '')} onChange={(e) => setEditingGame({ ...editingGame, screenshots: e.target.value.split('\n').filter(url => url.trim()) })} placeholder="Screenshot URLs (one per line)" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', minHeight: '80px', resize: 'vertical', width: '100%' }} />
                     {Array.isArray(editingGame.screenshots) && editingGame.screenshots.length > 0 && (
