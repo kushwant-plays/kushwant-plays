@@ -15,6 +15,25 @@ const Game = () => {
     loadGame();
     loadComments();
     trackView();
+    
+    // Real-time subscription for game updates
+    const subscription = supabase
+      .channel(`game_${id}`)
+      .on('postgres_changes', 
+        { event: 'UPDATE', schema: 'public', table: 'games', filter: `id=eq.${id}` },
+        (payload) => {
+          console.log('Game updated:', payload);
+          // Clear cache and reload game
+          localStorage.removeItem(`game_${id}`);
+          localStorage.removeItem(`game_${id}_time`);
+          loadGame();
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [id]);
 
   const loadGame = async () => {
@@ -41,6 +60,9 @@ const Game = () => {
     // Cache the data
     localStorage.setItem(`game_${id}`, JSON.stringify(data));
     localStorage.setItem(`game_${id}_time`, Date.now().toString());
+    console.log('Game data loaded:', data);
+    console.log('Screenshots:', data.screenshots);
+    console.log('Trailer URL:', data.trailer_url);
     setGame(data);
   };
 

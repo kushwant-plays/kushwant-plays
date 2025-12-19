@@ -29,6 +29,13 @@ const Admin = () => {
   const [bulkData, setBulkData] = useState('');
   const [bulkUploading, setBulkUploading] = useState(false);
   const [gameRequests, setGameRequests] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState('');
+  const [uploadingScreenshots, setUploadingScreenshots] = useState(false);
+  const [uploadingTrailer, setUploadingTrailer] = useState(false);
+  const [editUploading, setEditUploading] = useState(false);
+  const [editUploadingScreenshots, setEditUploadingScreenshots] = useState(false);
+  const [editUploadingTrailer, setEditUploadingTrailer] = useState(false);
   const navigate = useNavigate();
 
   const ADMIN_EMAIL = process.env.REACT_APP_ADMIN_EMAIL;
@@ -75,10 +82,10 @@ const Admin = () => {
   };
 
   const loadGames = async () => {
-    // Load only essential fields for admin management
+    // Load all fields for admin management
     const { data } = await supabase
       .from('games')
-      .select('id, title, img, type, priority, views, downloads, created_at')
+      .select('*')
       .order('priority', { ascending: false })
       .order('created_at', { ascending: false });
     setGames(data || []);
@@ -92,6 +99,189 @@ const Admin = () => {
     setGameRequests(data || []);
   };
 
+  const uploadImage = async (file) => {
+    if (!file) return null;
+    
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('game-images')
+        .upload(fileName, file);
+      
+      if (error) throw error;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('game-images')
+        .getPublicUrl(fileName);
+      
+      setUploadedImageUrl(publicUrl);
+      setFormData({ ...formData, img: publicUrl });
+      setStatus('✅ Image uploaded successfully!');
+      return publicUrl;
+    } catch (error) {
+      setStatus('❌ Upload error: ' + error.message);
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const uploadScreenshots = async (files) => {
+    if (!files || files.length === 0) return;
+    
+    setUploadingScreenshots(true);
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `screenshots/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+        
+        const { data, error } = await supabase.storage
+          .from('game-images')
+          .upload(fileName, file);
+        
+        if (error) throw error;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('game-images')
+          .getPublicUrl(fileName);
+        
+        return publicUrl;
+      });
+      
+      const uploadedUrls = await Promise.all(uploadPromises);
+      const currentScreenshots = formData.screenshots ? formData.screenshots.split('\n').filter(url => url.trim()) : [];
+      const allScreenshots = [...currentScreenshots, ...uploadedUrls];
+      
+      setFormData({ ...formData, screenshots: allScreenshots.join('\n') });
+      setStatus(`✅ ${uploadedUrls.length} screenshots uploaded successfully!`);
+    } catch (error) {
+      setStatus('❌ Screenshot upload error: ' + error.message);
+    } finally {
+      setUploadingScreenshots(false);
+    }
+  };
+
+  const uploadTrailer = async (file) => {
+    if (!file) return;
+    
+    setUploadingTrailer(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `trailers/${Date.now()}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('game-images')
+        .upload(fileName, file);
+      
+      if (error) throw error;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('game-images')
+        .getPublicUrl(fileName);
+      
+      setFormData({ ...formData, trailer_url: publicUrl });
+      setStatus('✅ Trailer uploaded successfully!');
+    } catch (error) {
+      setStatus('❌ Trailer upload error: ' + error.message);
+    } finally {
+      setUploadingTrailer(false);
+    }
+  };
+
+  const uploadImageForEdit = async (file) => {
+    if (!file) return null;
+    
+    setEditUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('game-images')
+        .upload(fileName, file);
+      
+      if (error) throw error;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('game-images')
+        .getPublicUrl(fileName);
+      
+      setEditingGame({ ...editingGame, img: publicUrl });
+      setStatus('✅ Image uploaded successfully!');
+      return publicUrl;
+    } catch (error) {
+      setStatus('❌ Upload error: ' + error.message);
+      return null;
+    } finally {
+      setEditUploading(false);
+    }
+  };
+
+  const uploadScreenshotsForEdit = async (files) => {
+    if (!files || files.length === 0) return;
+    
+    setEditUploadingScreenshots(true);
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `screenshots/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+        
+        const { data, error } = await supabase.storage
+          .from('game-images')
+          .upload(fileName, file);
+        
+        if (error) throw error;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('game-images')
+          .getPublicUrl(fileName);
+        
+        return publicUrl;
+      });
+      
+      const uploadedUrls = await Promise.all(uploadPromises);
+      const currentScreenshots = Array.isArray(editingGame.screenshots) ? editingGame.screenshots : [];
+      const allScreenshots = [...currentScreenshots, ...uploadedUrls];
+      
+      setEditingGame({ ...editingGame, screenshots: allScreenshots });
+      setStatus(`✅ ${uploadedUrls.length} screenshots uploaded successfully!`);
+    } catch (error) {
+      setStatus('❌ Screenshot upload error: ' + error.message);
+    } finally {
+      setEditUploadingScreenshots(false);
+    }
+  };
+
+  const uploadTrailerForEdit = async (file) => {
+    if (!file) return;
+    
+    setEditUploadingTrailer(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `trailers/${Date.now()}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('game-images')
+        .upload(fileName, file);
+      
+      if (error) throw error;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('game-images')
+        .getPublicUrl(fileName);
+      
+      setEditingGame({ ...editingGame, trailer_url: publicUrl });
+      setStatus('✅ Trailer uploaded successfully!');
+    } catch (error) {
+      setStatus('❌ Trailer upload error: ' + error.message);
+    } finally {
+      setEditUploadingTrailer(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user || user.email !== ADMIN_EMAIL) {
@@ -101,6 +291,12 @@ const Admin = () => {
 
     setLoading(true);
     try {
+      if (!formData.img) {
+        setStatus('❌ Please provide an image (upload file or enter URL)');
+        setLoading(false);
+        return;
+      }
+      
       const gameData = {
         ...formData,
         screenshots: formData.screenshots ? formData.screenshots.split('\n').filter(url => url.trim()) : []
@@ -201,23 +397,45 @@ const Admin = () => {
   const updateGame = async (id, updatedData) => {
     setLoading(true);
     try {
-      const { error } = await supabase
+      // Ensure screenshots is properly formatted
+      const formattedData = {
+        ...updatedData,
+        screenshots: Array.isArray(updatedData.screenshots) 
+          ? updatedData.screenshots 
+          : (updatedData.screenshots ? updatedData.screenshots.split('\n').filter(url => url.trim()) : [])
+      };
+      
+      console.log('Sending update to Supabase:', formattedData);
+      const { error, data } = await supabase
         .from('games')
-        .update(updatedData)
-        .eq('id', id);
+        .update(formattedData)
+        .eq('id', id)
+        .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
       
-      // Update local state immediately
+      console.log('Update successful, returned data:', data);
+      
+      // Update local games state immediately
       setGames(prevGames => 
-        prevGames.map(g => 
-          g.id === id ? { ...g, ...updatedData } : g
-        ).sort((a, b) => (b.priority || 0) - (a.priority || 0))
+        prevGames.map(game => 
+          game.id === id ? { ...game, ...formattedData } : game
+        )
       );
+      
+      // Clear all game caches to force fresh data load
+      localStorage.removeItem(`game_${id}`);
+      localStorage.removeItem(`game_${id}_time`);
+      localStorage.removeItem('games_cache');
+      localStorage.removeItem('games_cache_time');
       
       setEditingGame(null);
       setStatus('✅ Game updated successfully!');
     } catch (error) {
+      console.error('Update game error:', error);
       setStatus('❌ Error: ' + error.message);
     }
     setLoading(false);
@@ -332,15 +550,36 @@ const Admin = () => {
                       style={{ padding: '15px', borderRadius: '8px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', fontSize: '16px' }}
                       required
                     />
-                    <input
-                      type="url"
-                      name="img"
-                      placeholder="Image URL"
-                      value={formData.img}
-                      onChange={handleChange}
-                      style={{ padding: '15px', borderRadius: '8px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', fontSize: '16px' }}
-                      required
-                    />
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '8px', color: '#4CAF50', fontSize: '14px' }}>Upload Image File:</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) uploadImage(file);
+                        }}
+                        style={{ padding: '15px', borderRadius: '8px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', fontSize: '16px', width: '100%', marginBottom: '10px' }}
+                      />
+                      {uploading && <div style={{ color: '#ff4747', fontSize: '12px', marginBottom: '10px' }}>⏳ Uploading image...</div>}
+                      
+                      <div style={{ textAlign: 'center', margin: '10px 0', color: '#666', fontSize: '14px' }}>── OR ──</div>
+                      
+                      <label style={{ display: 'block', marginBottom: '8px', color: '#4CAF50', fontSize: '14px' }}>Image URL:</label>
+                      <input
+                        type="url"
+                        name="img"
+                        placeholder="https://example.com/image.jpg"
+                        value={formData.img}
+                        onChange={handleChange}
+                        style={{ padding: '15px', borderRadius: '8px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', fontSize: '16px', width: '100%' }}
+                      />
+                      {formData.img && (
+                        <div style={{ marginTop: '10px' }}>
+                          <img src={formData.img} alt="Preview" style={{ width: '100px', height: '60px', objectFit: 'cover', borderRadius: '4px' }} onError={(e) => e.target.style.display = 'none'} />
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <textarea
                     name="description"
@@ -376,21 +615,56 @@ const Admin = () => {
                       style={{ padding: '15px', borderRadius: '8px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', fontSize: '16px' }}
                     />
                   </div>
-                  <input
-                    type="url"
-                    name="trailer_url"
-                    placeholder="Trailer Video URL (optional)"
-                    value={formData.trailer_url}
-                    onChange={handleChange}
-                    style={{ width: '100%', padding: '15px', borderRadius: '8px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', fontSize: '16px', marginTop: '20px' }}
-                  />
-                  <textarea
-                    name="screenshots"
-                    placeholder="Screenshot URLs (one per line)"
-                    value={formData.screenshots}
-                    onChange={handleChange}
-                    style={{ width: '100%', padding: '15px', borderRadius: '8px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', minHeight: '80px', resize: 'vertical', marginTop: '20px', fontSize: '16px' }}
-                  />
+                  <div style={{ marginTop: '20px' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#4CAF50', fontSize: '14px' }}>Upload Trailer Video:</label>
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) uploadTrailer(file);
+                      }}
+                      style={{ padding: '15px', borderRadius: '8px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', fontSize: '16px', width: '100%', marginBottom: '10px' }}
+                    />
+                    {uploadingTrailer && <div style={{ color: '#ff4747', fontSize: '12px', marginBottom: '10px' }}>⏳ Uploading trailer...</div>}
+                    
+                    <div style={{ textAlign: 'center', margin: '10px 0', color: '#666', fontSize: '14px' }}>── OR ──</div>
+                    
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#4CAF50', fontSize: '14px' }}>Trailer Video URL:</label>
+                    <input
+                      type="url"
+                      name="trailer_url"
+                      placeholder="https://example.com/trailer.mp4 (optional)"
+                      value={formData.trailer_url}
+                      onChange={handleChange}
+                      style={{ width: '100%', padding: '15px', borderRadius: '8px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', fontSize: '16px' }}
+                    />
+                  </div>
+                  <div style={{ marginTop: '20px' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#4CAF50', fontSize: '14px' }}>Upload Screenshot Images:</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        if (files && files.length > 0) uploadScreenshots(files);
+                      }}
+                      style={{ padding: '15px', borderRadius: '8px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', fontSize: '16px', width: '100%', marginBottom: '10px' }}
+                    />
+                    {uploadingScreenshots && <div style={{ color: '#ff4747', fontSize: '12px', marginBottom: '10px' }}>⏳ Uploading screenshots...</div>}
+                    
+                    <div style={{ textAlign: 'center', margin: '10px 0', color: '#666', fontSize: '14px' }}>── OR ──</div>
+                    
+                    <label style={{ display: 'block', marginBottom: '8px', color: '#4CAF50', fontSize: '14px' }}>Screenshot URLs:</label>
+                    <textarea
+                      name="screenshots"
+                      placeholder="https://example.com/screenshot1.jpg\nhttps://example.com/screenshot2.jpg\n(one per line)"
+                      value={formData.screenshots}
+                      onChange={handleChange}
+                      style={{ width: '100%', padding: '15px', borderRadius: '8px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', minHeight: '80px', resize: 'vertical', fontSize: '16px' }}
+                    />
+                  </div>
                   <textarea
                     name="requirements"
                     placeholder="System Requirements (e.g., OS: Windows 10, RAM: 8GB, etc.)"
@@ -595,22 +869,24 @@ const Admin = () => {
                     }
                   }}
                 >
-                  {games
-                    .sort((a, b) => (b.priority || 0) - (a.priority || 0))
-                    .filter(game => {
-                      const matchesSearch = game.title.toLowerCase().includes(searchTerm.toLowerCase());
-                      const matchesFilter = manageFilter === 'all' || game.type === manageFilter;
-                      return matchesSearch && matchesFilter;
-                    })
-                    .map((game, index) => (
+                  {(() => {
+                    const filteredGames = games
+                      .filter(game => {
+                        const matchesSearch = game.title?.toLowerCase().includes(searchTerm.toLowerCase());
+                        const matchesFilter = manageFilter === 'all' || game.type === manageFilter;
+                        return matchesSearch && matchesFilter;
+                      })
+                      .sort((a, b) => (b.priority || 0) - (a.priority || 0));
+                    
+                    return filteredGames.map((game, index) => (
                     <div 
                       key={game.id} 
                       draggable
-                      onDragStart={() => setDraggedItem(index)}
+                      onDragStart={() => setDraggedItem(games.findIndex(g => g.id === game.id))}
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={(e) => {
                         e.preventDefault();
-                        handleDrop(index);
+                        handleDrop(games.findIndex(g => g.id === game.id));
                       }}
                       onDragEnd={() => setDraggedItem(null)}
                       style={{ 
@@ -627,7 +903,12 @@ const Admin = () => {
                       }}
                     >
                       <div style={{ color: '#666', fontSize: '18px', cursor: 'grab' }}>⋮⋮</div>
-                      <img src={game.img} alt="" style={{ width: '80px', height: '50px', objectFit: 'cover', borderRadius: '6px' }} />
+                      <img 
+                        src={game.img || '/assets/playslogo.png'} 
+                        alt={game.title}
+                        onError={(e) => e.target.src = '/assets/playslogo.png'}
+                        style={{ width: '80px', height: '50px', objectFit: 'cover', borderRadius: '6px' }} 
+                      />
                       <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{game.title}</div>
                         <div style={{ fontSize: '14px', color: '#999', marginTop: '5px' }}>
@@ -656,7 +937,8 @@ const Admin = () => {
                         </button>
                       </div>
                     </div>
-                  ))}
+                    ));
+                  })()}
                 </div>
               </div>
             )}
@@ -785,33 +1067,151 @@ const Admin = () => {
               
               <form onSubmit={(e) => {
                 e.preventDefault();
-                updateGame(editingGame.id, {
-                  title: e.target.title.value,
-                  description: e.target.description.value,
-                  type: e.target.type.value,
-                  img: e.target.img.value,
-                  download: e.target.download.value,
-                  priority: parseInt(e.target.priority.value) || 0,
-                  trailer_url: e.target.trailer_url.value,
-                  screenshots: e.target.screenshots.value ? e.target.screenshots.value.split('\n').filter(url => url.trim()) : [],
-                  requirements: e.target.requirements.value
-                });
+                const updateData = {
+                  title: editingGame.title || '',
+                  description: editingGame.description || '',
+                  type: editingGame.type || 'pc',
+                  img: editingGame.img || '',
+                  download: editingGame.download || '',
+                  priority: parseInt(editingGame.priority) || 0,
+                  trailer_url: editingGame.trailer_url || '',
+                  screenshots: Array.isArray(editingGame.screenshots) 
+                    ? editingGame.screenshots.filter(url => url && url.trim())
+                    : [],
+                  requirements: editingGame.requirements || ''
+                };
+                console.log('Form submission - editingGame:', editingGame);
+                console.log('Form submission - updateData:', updateData);
+                updateGame(editingGame.id, updateData);
               }}>
-                <div style={{ display: 'grid', gap: '15px' }}>
-                  <input name="title" defaultValue={editingGame.title} placeholder="Game Title" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }} required />
-                  <textarea name="description" defaultValue={editingGame.description} placeholder="Description" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', minHeight: '80px', resize: 'vertical' }} />
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 100px', gap: '10px' }}>
-                    <select name="type" defaultValue={editingGame.type} style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }}>
-                      <option value="pc">PC</option>
-                      <option value="android">Android</option>
-                    </select>
-                    <input name="img" defaultValue={editingGame.img} placeholder="Image URL" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }} required />
-                    <input name="priority" type="number" defaultValue={editingGame.priority} placeholder="Priority" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }} />
+                <div style={{ display: 'grid', gap: '15px', maxHeight: '70vh', overflow: 'auto', padding: '5px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Game Title:</label>
+                    <input name="title" value={editingGame.title || ''} onChange={(e) => setEditingGame({ ...editingGame, title: e.target.value })} placeholder="Game Title" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%' }} required />
                   </div>
-                  <input name="download" defaultValue={editingGame.download} placeholder="Download URL" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }} />
-                  <input name="trailer_url" defaultValue={editingGame.trailer_url} placeholder="Trailer URL" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff' }} />
-                  <textarea name="screenshots" defaultValue={editingGame.screenshots ? editingGame.screenshots.join('\n') : ''} placeholder="Screenshot URLs (one per line)" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', minHeight: '80px', resize: 'vertical' }} />
-                  <textarea name="requirements" defaultValue={editingGame.requirements || ''} placeholder="System Requirements" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', minHeight: '80px', resize: 'vertical' }} />
+                  
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Description:</label>
+                    <textarea name="description" value={editingGame.description || ''} onChange={(e) => setEditingGame({ ...editingGame, description: e.target.value })} placeholder="Description" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', minHeight: '80px', resize: 'vertical', width: '100%' }} />
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 100px', gap: '10px' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Platform:</label>
+                      <select name="type" value={editingGame.type || 'pc'} onChange={(e) => setEditingGame({ ...editingGame, type: e.target.value })} style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%' }}>
+                        <option value="pc">PC</option>
+                        <option value="android">Android</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Priority:</label>
+                      <input name="priority" type="number" value={editingGame.priority || 0} onChange={(e) => setEditingGame({ ...editingGame, priority: parseInt(e.target.value) || 0 })} placeholder="Priority" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%' }} />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Upload Image:</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) uploadImageForEdit(file);
+                      }}
+                      style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%', marginBottom: '10px' }}
+                    />
+                    {editUploading && <div style={{ color: '#ff4747', fontSize: '12px', marginBottom: '10px' }}>⏳ Uploading...</div>}
+                    
+                    <div style={{ textAlign: 'center', margin: '10px 0', color: '#666', fontSize: '12px' }}>── OR ──</div>
+                    
+                    <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Image URL:</label>
+                    <input name="img" value={editingGame.img || ''} onChange={(e) => setEditingGame({ ...editingGame, img: e.target.value })} placeholder="Image URL" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%' }} required />
+                    {editingGame.img && (
+                      <img src={editingGame.img} alt="Preview" style={{ width: '100px', height: '60px', objectFit: 'cover', borderRadius: '4px', marginTop: '5px' }} onError={(e) => e.target.style.display = 'none'} />
+                    )}
+                  </div>
+                  
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Download URL:</label>
+                    <input name="download" value={editingGame.download || ''} onChange={(e) => setEditingGame({ ...editingGame, download: e.target.value })} placeholder="Download URL" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%' }} />
+                  </div>
+                  
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Upload Trailer:</label>
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) uploadTrailerForEdit(file);
+                      }}
+                      style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%', marginBottom: '10px' }}
+                    />
+                    {editUploadingTrailer && <div style={{ color: '#ff4747', fontSize: '12px', marginBottom: '10px' }}>⏳ Uploading trailer...</div>}
+                    
+                    <div style={{ textAlign: 'center', margin: '10px 0', color: '#666', fontSize: '12px' }}>── OR ──</div>
+                    
+                    <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Trailer URL:</label>
+                    <input name="trailer_url" value={editingGame.trailer_url || ''} onChange={(e) => setEditingGame({ ...editingGame, trailer_url: e.target.value })} placeholder="Trailer URL" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%' }} />
+                    {editingGame.trailer_url && (
+                      <div style={{ marginTop: '10px', position: 'relative' }}>
+                        <video controls style={{ width: '200px', height: '120px', borderRadius: '4px' }}>
+                          <source src={editingGame.trailer_url} type="video/mp4" />
+                        </video>
+                        <button
+                          type="button"
+                          onClick={() => setEditingGame({ ...editingGame, trailer_url: '' })}
+                          style={{ position: 'absolute', top: '5px', right: '5px', background: '#ff4747', color: '#fff', border: 'none', borderRadius: '50%', width: '25px', height: '25px', fontSize: '14px', cursor: 'pointer' }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Upload Screenshots:</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        if (files && files.length > 0) uploadScreenshotsForEdit(files);
+                      }}
+                      style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%', marginBottom: '10px' }}
+                    />
+                    {editUploadingScreenshots && <div style={{ color: '#ff4747', fontSize: '12px', marginBottom: '10px' }}>⏳ Uploading screenshots...</div>}
+                    
+                    <div style={{ textAlign: 'center', margin: '10px 0', color: '#666', fontSize: '12px' }}>── OR ──</div>
+                    
+                    <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Screenshots (one URL per line):</label>
+                    <textarea name="screenshots" value={Array.isArray(editingGame.screenshots) ? editingGame.screenshots.join('\n') : (editingGame.screenshots || '')} onChange={(e) => setEditingGame({ ...editingGame, screenshots: e.target.value.split('\n').filter(url => url.trim()) })} placeholder="Screenshot URLs (one per line)" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', minHeight: '80px', resize: 'vertical', width: '100%' }} />
+                    {Array.isArray(editingGame.screenshots) && editingGame.screenshots.length > 0 && (
+                      <div style={{ marginTop: '10px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                        {editingGame.screenshots.map((url, index) => (
+                          <div key={index} style={{ position: 'relative' }}>
+                            <img src={url} alt={`Screenshot ${index + 1}`} style={{ width: '80px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} onError={(e) => e.target.style.display = 'none'} />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newScreenshots = editingGame.screenshots.filter((_, i) => i !== index);
+                                setEditingGame({ ...editingGame, screenshots: newScreenshots });
+                              }}
+                              style={{ position: 'absolute', top: '-5px', right: '-5px', background: '#ff4747', color: '#fff', border: 'none', borderRadius: '50%', width: '20px', height: '20px', fontSize: '12px', cursor: 'pointer' }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>System Requirements:</label>
+                    <textarea name="requirements" value={editingGame.requirements || ''} onChange={(e) => setEditingGame({ ...editingGame, requirements: e.target.value })} placeholder="System Requirements" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', minHeight: '80px', resize: 'vertical', width: '100%' }} />
+                  </div>
                   <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                     <button type="button" onClick={() => setEditingGame(null)} style={{ background: '#666', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
                     <button type="submit" style={{ background: '#4CAF50', color: '#fff', border: 'none', padding: '12px 20px', borderRadius: '6px', cursor: 'pointer' }}>Save Changes</button>
