@@ -184,28 +184,6 @@ const Home = () => {
       <main className="main">
         <h1>Free Games</h1>
         
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
-          <button 
-            onClick={() => window.open('https://forms.gle/your-google-form-id', '_blank')}
-            style={{ 
-              padding: '12px 24px', 
-              background: 'linear-gradient(45deg, #ff4747, #ff6b6b)', 
-              border: 'none', 
-              borderRadius: '25px', 
-              color: 'white', 
-              fontWeight: '600', 
-              cursor: 'pointer',
-              fontSize: '14px',
-              boxShadow: '0 4px 15px rgba(255,71,71,0.3)',
-              transition: 'transform 0.2s'
-            }}
-            onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
-            onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
-          >
-            🎮 Request a Game
-          </button>
-        </div>
-        
         <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '35px', flexWrap: 'wrap' }}>
           <input
             type="text"
@@ -234,6 +212,25 @@ const Home = () => {
             style={{ padding: '10px 18px', background: filter === 'android' ? '#ff4747' : 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', color: 'white', cursor: 'pointer' }}
           >
             Android
+          </button>
+          <button 
+            onClick={() => window.open('https://forms.gle/your-google-form-id', '_blank')}
+            style={{ 
+              padding: '10px 18px', 
+              background: 'linear-gradient(45deg, #ff4747, #ff6b6b)', 
+              border: 'none', 
+              borderRadius: '6px', 
+              color: 'white', 
+              fontWeight: '600', 
+              cursor: 'pointer',
+              fontSize: '14px',
+              boxShadow: '0 4px 15px rgba(255,71,71,0.3)',
+              transition: 'transform 0.2s'
+            }}
+            onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
+            onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
+          >
+            🎮 Request Game
           </button>
         </div>
 
