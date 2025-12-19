@@ -10,8 +10,36 @@ const Home = () => {
   const [filter, setFilter] = useState('all');
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-
   const navigate = useNavigate();
+
+  const loadGamesWithCache = async () => {
+    // Check cache first (5 minutes)
+    const cached = localStorage.getItem('games_cache');
+    const cacheTime = localStorage.getItem('games_cache_time');
+    
+    if (cached && cacheTime && Date.now() - parseInt(cacheTime) < 300000) {
+      setGames(JSON.parse(cached));
+      return;
+    }
+    
+    // Load from database
+    const { data, error } = await supabase
+      .from('games')
+      .select('id, title, img, type, priority, created_at')
+      .order('priority', { ascending: false })
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error loading games:', error);
+      return;
+    }
+    
+    // Cache the data
+    localStorage.setItem('games_cache', JSON.stringify(data || []));
+    localStorage.setItem('games_cache_time', Date.now().toString());
+    console.log('All games:', data);
+    setGames(data || []);
+  };
 
   useEffect(() => {
     loadGamesWithCache();
@@ -21,12 +49,12 @@ const Home = () => {
       .channel('games_changes')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'games' },
-        (payload) => {
+        async (payload) => {
           console.log('Database change detected:', payload);
           // Clear cache and reload games
           localStorage.removeItem('games_cache');
           localStorage.removeItem('games_cache_time');
-          loadGamesWithCache();
+          await loadGamesWithCache();
         }
       )
       .subscribe();
@@ -83,35 +111,6 @@ const Home = () => {
     filterGames();
   }, [games, searchTerm, filter]);
 
-  const loadGamesWithCache = async () => {
-    // Check cache first (5 minutes)
-    const cached = localStorage.getItem('games_cache');
-    const cacheTime = localStorage.getItem('games_cache_time');
-    
-    if (cached && cacheTime && Date.now() - parseInt(cacheTime) < 300000) {
-      setGames(JSON.parse(cached));
-      return;
-    }
-    
-    // Load from database
-    const { data, error } = await supabase
-      .from('games')
-      .select('id, title, img, type, priority, created_at')
-      .order('priority', { ascending: false })
-      .order('created_at', { ascending: false });
-    
-    if (error) {
-      console.error('Error loading games:', error);
-      return;
-    }
-    
-    // Cache the data
-    localStorage.setItem('games_cache', JSON.stringify(data || []));
-    localStorage.setItem('games_cache_time', Date.now().toString());
-    console.log('All games:', data);
-    setGames(data || []);
-  };
-
   const filterGames = () => {
     let filtered = games || [];
     
@@ -131,8 +130,6 @@ const Home = () => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-
 
   return (
     <div>
@@ -288,9 +285,6 @@ const Home = () => {
           ↑
         </button>
       )}
-
-
-
     </div>
   );
 };
