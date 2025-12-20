@@ -9,12 +9,23 @@ const Game = () => {
   const [game, setGame] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [commentName, setCommentName] = useState('');
   const [selectedScreenshot, setSelectedScreenshot] = useState(null);
+  const [currentScreenshotIndex, setCurrentScreenshotIndex] = useState(0);
 
   useEffect(() => {
     loadGame();
     loadComments();
     trackView();
+    
+    // Keyboard event listener for modal
+    const handleKeyPress = (e) => {
+      if (e.key === 'Escape' && selectedScreenshot) {
+        setSelectedScreenshot(null);
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyPress);
     
     // Real-time subscription for game updates
     const subscription = supabase
@@ -32,9 +43,36 @@ const Game = () => {
       .subscribe();
     
     return () => {
+      document.removeEventListener('keydown', handleKeyPress);
       subscription.unsubscribe();
     };
-  }, [id]);
+  }, [id, selectedScreenshot]);
+  
+  // Auto-scroll screenshots effect
+  useEffect(() => {
+    if (game?.screenshots) {
+      let screenshots = [];
+      if (Array.isArray(game.screenshots)) {
+        screenshots = game.screenshots.filter(Boolean);
+      } else if (typeof game.screenshots === 'string' && game.screenshots.trim()) {
+        try {
+          const parsed = JSON.parse(game.screenshots);
+          if (Array.isArray(parsed)) {
+            screenshots = parsed.filter(Boolean);
+          }
+        } catch {
+          screenshots = game.screenshots.split('\n').filter(url => url && url.trim());
+        }
+      }
+      
+      if (screenshots.length > 1) {
+        const interval = setInterval(() => {
+          setCurrentScreenshotIndex(prev => (prev + 1) % screenshots.length);
+        }, 3000);
+        return () => clearInterval(interval);
+      }
+    }
+  }, [game?.screenshots]);
 
   const loadGame = async () => {
     // Check cache first (15 minutes)
@@ -112,7 +150,7 @@ const Game = () => {
       .from('comments')
       .insert({
         game_id: id,
-        username: 'Guest',
+        username: commentName.trim() || 'Guest',
         text: newComment
       });
     
@@ -122,6 +160,7 @@ const Game = () => {
     }
     
     setNewComment('');
+    setCommentName('');
     loadComments();
   };
 
@@ -192,48 +231,230 @@ const Game = () => {
             {/* Trailer Section */}
             {game.trailer_url && (
               <div style={{ marginBottom: '50px' }}>
-                <h2 style={{ fontSize: '2rem', marginBottom: '20px', color: '#ff4747' }}>🎬 Game Trailer</h2>
-                <div style={{ position: 'relative', borderRadius: '15px', overflow: 'hidden', background: '#1a1a1a' }}>
+                <h2 style={{ fontSize: '2rem', marginBottom: '25px', color: '#ff4747', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  🎬 Game Trailer
+                </h2>
+                <div style={{ 
+                  position: 'relative', 
+                  borderRadius: '20px', 
+                  overflow: 'hidden', 
+                  background: 'linear-gradient(135deg, #1a1a1a, #2a2a2a)',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                  border: '1px solid rgba(255,71,71,0.2)'
+                }}>
                   <video 
                     controls 
-                    style={{ width: '100%', height: '400px', objectFit: 'cover' }}
+                    style={{ 
+                      width: '100%', 
+                      height: '450px', 
+                      objectFit: 'cover',
+                      borderRadius: '20px'
+                    }}
                     poster={game.img}
                   >
                     <source src={game.trailer_url} type="video/mp4" />
+                    Your browser does not support the video tag.
                   </video>
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '15px',
+                    right: '15px',
+                    background: 'rgba(0,0,0,0.7)',
+                    padding: '8px 12px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    color: '#fff'
+                  }}>
+                    🎥 Official Trailer
+                  </div>
                 </div>
               </div>
             )}
             
             {/* Screenshots Section */}
-            {game.screenshots && game.screenshots.length > 0 && (
-              <div style={{ marginBottom: '50px' }}>
-                <h2 style={{ fontSize: '2rem', marginBottom: '20px', color: '#ff4747' }}>📸 Screenshots</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
-                  {game.screenshots?.filter(Boolean).map((screenshot, index) => (
-                    <div 
-                      key={index}
-                      style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.2s' }}
-                      onClick={() => setSelectedScreenshot(screenshot)}
-                      onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                      onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                    >
-                      <img 
-                        src={screenshot} 
-                        alt={`Screenshot ${index + 1}`} 
-                        style={{ width: '100%', height: '150px', objectFit: 'cover' }}
-                        onError={(e) => e.target.style.display = 'none'}
-                      />
-                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0, transition: 'opacity 0.2s' }}
-                           onMouseOver={(e) => e.target.style.opacity = 1}
-                           onMouseOut={(e) => e.target.style.opacity = 0}>
-                        <span style={{ color: '#fff', fontSize: '24px' }}>🔍</span>
-                      </div>
+            {(() => {
+              let screenshots = [];
+              if (Array.isArray(game.screenshots)) {
+                screenshots = game.screenshots.filter(Boolean);
+              } else if (typeof game.screenshots === 'string' && game.screenshots.trim()) {
+                try {
+                  const parsed = JSON.parse(game.screenshots);
+                  if (Array.isArray(parsed)) {
+                    screenshots = parsed.filter(Boolean);
+                  }
+                } catch {
+                  screenshots = game.screenshots.split('\n').filter(url => url && url.trim());
+                }
+              }
+              
+              const nextScreenshot = () => {
+                setCurrentScreenshotIndex(prev => (prev + 1) % screenshots.length);
+              };
+              
+              const prevScreenshot = () => {
+                setCurrentScreenshotIndex(prev => (prev - 1 + screenshots.length) % screenshots.length);
+              };
+              
+              return screenshots.length > 0 && (
+                <div style={{ marginBottom: '50px' }}>
+                  <h2 style={{ fontSize: '2rem', marginBottom: '25px', color: '#ff4747' }}>
+                    📸 Screenshots ({screenshots.length})
+                  </h2>
+                  
+                  {/* Screenshot Carousel */}
+                  <div style={{ 
+                    position: 'relative',
+                    width: '100%',
+                    maxWidth: '800px',
+                    margin: '0 auto',
+                    aspectRatio: '16/9',
+                    borderRadius: '15px',
+                    overflow: 'hidden',
+                    background: '#1a1a1a',
+                    border: '1px solid rgba(255,255,255,0.1)'
+                  }}>
+                    <img 
+                      src={screenshots[currentScreenshotIndex]} 
+                      alt={`${game.title} Screenshot ${currentScreenshotIndex + 1}`}
+                      style={{ 
+                        width: '100%', 
+                        height: '100%', 
+                        objectFit: 'cover',
+                        cursor: 'pointer',
+                        transition: 'opacity 0.3s ease'
+                      }}
+                      onClick={() => setSelectedScreenshot(screenshots[currentScreenshotIndex])}
+                      onError={(e) => e.target.style.display = 'none'}
+                    />
+                    
+                    {/* Navigation Arrows */}
+                    {screenshots.length > 1 && (
+                      <>
+                        <button
+                          onClick={prevScreenshot}
+                          style={{
+                            position: 'absolute',
+                            left: '15px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'rgba(0,0,0,0.7)',
+                            border: 'none',
+                            color: '#fff',
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            cursor: 'pointer',
+                            fontSize: '18px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'background 0.2s ease'
+                          }}
+                          onMouseOver={(e) => e.target.style.background = 'rgba(255,71,71,0.8)'}
+                          onMouseOut={(e) => e.target.style.background = 'rgba(0,0,0,0.7)'}
+                        >
+                          ‹
+                        </button>
+                        
+                        <button
+                          onClick={nextScreenshot}
+                          style={{
+                            position: 'absolute',
+                            right: '15px',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'rgba(0,0,0,0.7)',
+                            border: 'none',
+                            color: '#fff',
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            cursor: 'pointer',
+                            fontSize: '18px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'background 0.2s ease'
+                          }}
+                          onMouseOver={(e) => e.target.style.background = 'rgba(255,71,71,0.8)'}
+                          onMouseOut={(e) => e.target.style.background = 'rgba(0,0,0,0.7)'}
+                        >
+                          ›
+                        </button>
+                      </>
+                    )}
+                    
+                    {/* Screenshot Counter */}
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '15px',
+                      right: '15px',
+                      background: 'rgba(0,0,0,0.7)',
+                      padding: '5px 10px',
+                      borderRadius: '15px',
+                      fontSize: '12px',
+                      color: '#fff'
+                    }}>
+                      {currentScreenshotIndex + 1} / {screenshots.length}
                     </div>
-                  )) || []}
+                    
+                    {/* Click to expand hint */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '15px',
+                      left: '15px',
+                      background: 'rgba(255,71,71,0.8)',
+                      padding: '5px 10px',
+                      borderRadius: '15px',
+                      fontSize: '12px',
+                      color: '#fff',
+                      opacity: 0.8
+                    }}>
+                      🔍 Click to expand
+                    </div>
+                  </div>
+                  
+                  {/* Thumbnail Navigation */}
+                  {screenshots.length > 1 && (
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      gap: '10px',
+                      marginTop: '20px',
+                      flexWrap: 'wrap'
+                    }}>
+                      {screenshots.map((screenshot, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentScreenshotIndex(index)}
+                          style={{
+                            width: '60px',
+                            height: '35px',
+                            border: currentScreenshotIndex === index ? '2px solid #ff4747' : '1px solid rgba(255,255,255,0.2)',
+                            borderRadius: '6px',
+                            overflow: 'hidden',
+                            cursor: 'pointer',
+                            background: 'none',
+                            padding: 0
+                          }}
+                        >
+                          <img
+                            src={screenshot}
+                            alt={`Thumbnail ${index + 1}`}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover'
+                            }}
+                            onError={(e) => e.target.style.display = 'none'}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
+              );
+            })()}
             
             {/* Description Section */}
             <div style={{ marginBottom: '50px' }}>
@@ -249,6 +470,13 @@ const Game = () => {
               
               {/* Add Comment */}
               <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '15px', padding: '25px', marginBottom: '30px' }}>
+                <input
+                  type="text"
+                  value={commentName}
+                  onChange={(e) => setCommentName(e.target.value)}
+                  placeholder="Your name (optional)"
+                  style={{ width: '100%', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px', padding: '12px 15px', color: '#fff', fontSize: '14px', marginBottom: '15px' }}
+                />
                 <textarea
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
@@ -302,9 +530,52 @@ const Game = () => {
       
       {/* Screenshot Modal */}
       {selectedScreenshot && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }} onClick={() => setSelectedScreenshot(null)}>
-          <img src={selectedScreenshot} alt="Screenshot" style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: '10px' }} />
-          <button style={{ position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', width: '40px', height: '40px', borderRadius: '50%', fontSize: '20px', cursor: 'pointer' }} onClick={() => setSelectedScreenshot(null)}>×</button>
+        <div 
+          style={{ 
+            position: 'fixed', 
+            top: 0, 
+            left: 0, 
+            width: '100%', 
+            height: '100%', 
+            background: 'rgba(0,0,0,0.9)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            zIndex: 1000
+          }} 
+          onClick={() => setSelectedScreenshot(null)}
+        >
+          <img 
+            src={selectedScreenshot} 
+            alt="Full Size Screenshot" 
+            style={{ 
+              maxWidth: '90%', 
+              maxHeight: '90%', 
+              borderRadius: '10px',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.8)'
+            }} 
+          />
+          <button 
+            style={{ 
+              position: 'absolute', 
+              top: '20px', 
+              right: '20px', 
+              background: '#ff4747', 
+              border: 'none', 
+              color: '#fff', 
+              width: '40px', 
+              height: '40px', 
+              borderRadius: '50%', 
+              fontSize: '20px', 
+              cursor: 'pointer'
+            }} 
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedScreenshot(null);
+            }}
+          >
+            ×
+          </button>
         </div>
       )}
     </div>

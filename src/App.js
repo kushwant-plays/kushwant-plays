@@ -11,6 +11,7 @@ import Stats from './pages/Stats';
 import Admin from './pages/Admin';
 import YouTube from './pages/YouTube';
 import RequestGame from './pages/RequestGame';
+import About from './pages/About';
 import Analytics from './components/Analytics';
 import './App.css';
 
@@ -30,6 +31,7 @@ function App() {
             <Route path="/admin" element={<Admin />} />
             <Route path="/youtube" element={<YouTube />} />
             <Route path="/request-game" element={<RequestGame />} />
+            <Route path="/about" element={<About />} />
           </Routes>
         </Router>
       </HelmetProvider>

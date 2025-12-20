@@ -8,6 +8,7 @@ const Home = () => {
   const [filteredGames, setFilteredGames] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ const Home = () => {
     // Load from database
     const { data, error } = await supabase
       .from('games')
-      .select('id, title, img, type, priority, created_at')
+      .select('id, title, img, type, category, priority, created_at')
       .order('priority', { ascending: false })
       .order('created_at', { ascending: false });
     
@@ -37,7 +38,6 @@ const Home = () => {
     // Cache the data
     localStorage.setItem('games_cache', JSON.stringify(data || []));
     localStorage.setItem('games_cache_time', Date.now().toString());
-    console.log('All games:', data);
     setGames(data || []);
   };
 
@@ -109,7 +109,7 @@ const Home = () => {
 
   useEffect(() => {
     filterGames();
-  }, [games, searchTerm, filter]);
+  }, [games, searchTerm, filter, categoryFilter]);
 
   const filterGames = () => {
     let filtered = games || [];
@@ -122,6 +122,10 @@ const Home = () => {
     
     if (filter !== 'all') {
       filtered = filtered.filter(game => game?.type === filter);
+    }
+    
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(game => game?.category === categoryFilter);
     }
     
     setFilteredGames(filtered);
@@ -150,6 +154,12 @@ const Home = () => {
           <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '700', color: '#ff4747' }}>Kushwant Plays</h1>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <button
+            onClick={() => navigate('/about')}
+            style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' }}
+          >
+            About
+          </button>
           <a href="https://www.youtube.com/@kushwantplays" target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="#ff0000">
               <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
@@ -184,42 +194,68 @@ const Home = () => {
       <main className="main">
         <h1>Free Games</h1>
         
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '35px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
           <input
             type="text"
-            placeholder="Search games..."
+            placeholder="🔍 Search games..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ padding: '10px 15px', borderRadius: '6px', border: 'none', width: '260px' }}
+            style={{ padding: '10px 15px', borderRadius: '6px', border: 'none', width: '260px', fontSize: '14px' }}
           />
-          <button 
-            className={filter === 'all' ? 'active' : ''}
-            onClick={() => setFilter('all')}
-            style={{ padding: '10px 18px', background: filter === 'all' ? '#ff4747' : 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', color: 'white', cursor: 'pointer' }}
-          >
-            All
-          </button>
-          <button 
-            className={filter === 'pc' ? 'active' : ''}
-            onClick={() => setFilter('pc')}
-            style={{ padding: '10px 18px', background: filter === 'pc' ? '#ff4747' : 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', color: 'white', cursor: 'pointer' }}
-          >
-            PC
-          </button>
-          <button 
-            className={filter === 'android' ? 'active' : ''}
-            onClick={() => setFilter('android')}
-            style={{ padding: '10px 18px', background: filter === 'android' ? '#ff4747' : 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px', color: 'white', cursor: 'pointer' }}
-          >
-            Android
-          </button>
+        </div>
+        
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '15px', flexWrap: 'wrap' }}>
+          <div style={{ color: '#999', fontSize: '14px', alignSelf: 'center', marginRight: '10px' }}>Platform:</div>
+          {['all', 'pc', 'android'].map(type => (
+            <button 
+              key={type}
+              onClick={() => setFilter(type)}
+              style={{ 
+                padding: '8px 16px', 
+                background: filter === type ? '#ff4747' : 'rgba(255,255,255,0.1)', 
+                border: '1px solid rgba(255,255,255,0.2)', 
+                borderRadius: '6px', 
+                color: 'white', 
+                cursor: 'pointer',
+                fontSize: '13px',
+                textTransform: 'capitalize'
+              }}
+            >
+              {type === 'all' ? 'All' : type.toUpperCase()}
+            </button>
+          ))}
+        </div>
+        
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '25px', flexWrap: 'wrap' }}>
+          <div style={{ color: '#999', fontSize: '14px', alignSelf: 'center', marginRight: '10px' }}>Genre:</div>
+          {['all', 'action', 'adventure', 'horror', 'rpg', 'strategy', 'racing', 'sports', 'puzzle', 'simulation'].map(category => (
+            <button 
+              key={category}
+              onClick={() => setCategoryFilter(category)}
+              style={{ 
+                padding: '8px 16px', 
+                background: categoryFilter === category ? '#4CAF50' : 'rgba(255,255,255,0.1)', 
+                border: '1px solid rgba(255,255,255,0.2)', 
+                borderRadius: '6px', 
+                color: 'white', 
+                cursor: 'pointer',
+                fontSize: '13px',
+                textTransform: 'capitalize'
+              }}
+            >
+              {category === 'all' ? 'All Genres' : category === 'rpg' ? 'RPG' : category}
+            </button>
+          ))}
+        </div>
+        
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '35px' }}>
           <button 
             onClick={() => navigate('/request-game')}
             style={{ 
-              padding: '10px 18px', 
+              padding: '12px 24px', 
               background: 'linear-gradient(45deg, #ff4747, #ff6b6b)', 
               border: 'none', 
-              borderRadius: '6px', 
+              borderRadius: '8px', 
               color: 'white', 
               fontWeight: '600', 
               cursor: 'pointer',

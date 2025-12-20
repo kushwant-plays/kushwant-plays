@@ -10,6 +10,7 @@ const Admin = () => {
     title: '',
     description: '',
     type: 'pc',
+    category: 'action',
     download: '',
     img: '',
     priority: 0,
@@ -24,6 +25,7 @@ const Admin = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [draggedItem, setDraggedItem] = useState(null);
   const [manageFilter, setManageFilter] = useState('all');
+  const [manageCategoryFilter, setManageCategoryFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [editingGame, setEditingGame] = useState(null);
   const [bulkData, setBulkData] = useState('');
@@ -196,24 +198,40 @@ const Admin = () => {
     
     setEditUploading(true);
     try {
+      console.log('Starting upload for file:', file.name, file.size, 'bytes');
+      
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
       
+      console.log('Uploading to:', fileName);
+      
       const { data, error } = await supabase.storage
         .from('game-images')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Storage upload error:', error);
+        setStatus(`❌ Upload failed: ${error.message}`);
+        return null;
+      }
+      
+      console.log('Upload response:', data);
       
       const { data: { publicUrl } } = supabase.storage
         .from('game-images')
         .getPublicUrl(fileName);
       
+      console.log('Generated public URL:', publicUrl);
+      
       setEditingGame({ ...editingGame, img: publicUrl });
       setStatus('✅ Image uploaded successfully!');
       return publicUrl;
     } catch (error) {
-      setStatus('❌ Upload error: ' + error.message);
+      console.error('Unexpected error:', error);
+      setStatus(`❌ Unexpected error: ${error.message}`);
       return null;
     } finally {
       setEditUploading(false);
@@ -233,7 +251,10 @@ const Admin = () => {
           .from('game-images')
           .upload(fileName, file);
         
-        if (error) throw error;
+        if (error) {
+          console.error('Upload error:', error);
+          throw error;
+        }
         
         const { data: { publicUrl } } = supabase.storage
           .from('game-images')
@@ -248,7 +269,9 @@ const Admin = () => {
       
       setEditingGame({ ...editingGame, screenshots: allScreenshots });
       setStatus(`✅ ${uploadedUrls.length} screenshots uploaded successfully!`);
+      console.log('Screenshots uploaded:', uploadedUrls);
     } catch (error) {
+      console.error('Screenshot upload error:', error);
       setStatus('❌ Screenshot upload error: ' + error.message);
     } finally {
       setEditUploadingScreenshots(false);
@@ -267,7 +290,10 @@ const Admin = () => {
         .from('game-images')
         .upload(fileName, file);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Trailer upload error:', error);
+        throw error;
+      }
       
       const { data: { publicUrl } } = supabase.storage
         .from('game-images')
@@ -275,7 +301,9 @@ const Admin = () => {
       
       setEditingGame({ ...editingGame, trailer_url: publicUrl });
       setStatus('✅ Trailer uploaded successfully!');
+      console.log('Trailer uploaded:', publicUrl);
     } catch (error) {
+      console.error('Trailer upload error:', error);
       setStatus('❌ Trailer upload error: ' + error.message);
     } finally {
       setEditUploadingTrailer(false);
@@ -309,7 +337,7 @@ const Admin = () => {
       if (error) throw error;
       
       setStatus('✅ Game added successfully!');
-      setFormData({ title: '', description: '', type: 'pc', download: '', img: '', priority: 0, screenshots: '', trailer_url: '', requirements: '' });
+      setFormData({ title: '', description: '', type: 'pc', category: 'action', download: '', img: '', priority: 0, screenshots: '', trailer_url: '', requirements: '' });
       loadGames();
     } catch (error) {
       setStatus('❌ Error: ' + error.message);
@@ -588,7 +616,7 @@ const Admin = () => {
                     onChange={handleChange}
                     style={{ width: '100%', padding: '15px', borderRadius: '8px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', minHeight: '100px', resize: 'vertical', marginTop: '20px', fontSize: '16px' }}
                   />
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginTop: '20px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minWidth(200px, 1fr))', gap: '20px', marginTop: '20px' }}>
                     <select
                       name="type"
                       value={formData.type}
@@ -597,6 +625,22 @@ const Admin = () => {
                     >
                       <option value="pc">PC</option>
                       <option value="android">Android</option>
+                    </select>
+                    <select
+                      name="category"
+                      value={formData.category}
+                      onChange={handleChange}
+                      style={{ padding: '15px', borderRadius: '8px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', fontSize: '16px' }}
+                    >
+                      <option value="action">Action</option>
+                      <option value="adventure">Adventure</option>
+                      <option value="horror">Horror</option>
+                      <option value="rpg">RPG</option>
+                      <option value="strategy">Strategy</option>
+                      <option value="racing">Racing</option>
+                      <option value="sports">Sports</option>
+                      <option value="puzzle">Puzzle</option>
+                      <option value="simulation">Simulation</option>
                     </select>
                     <input
                       type="number"
@@ -831,26 +875,50 @@ const Admin = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     style={{ flex: 1, minWidth: '200px', padding: '12px', borderRadius: '8px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', fontSize: '16px' }}
                   />
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    {['all', 'pc', 'android'].map(filter => (
-                      <button
-                        key={filter}
-                        onClick={() => setManageFilter(filter)}
-                        style={{
-                          background: manageFilter === filter ? '#ff4747' : '#333',
-                          color: '#fff',
-                          border: 'none',
-                          padding: '12px 20px',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          fontSize: '14px',
-                          textTransform: 'capitalize'
-                        }}
-                      >
-                        {filter === 'all' ? `All (${games.length})` : `${filter.toUpperCase()} (${games.filter(g => g.type === filter).length})`}
-                      </button>
-                    ))}
-                  </div>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '15px', flexWrap: 'wrap' }}>
+                  <div style={{ color: '#999', fontSize: '14px', alignSelf: 'center', marginRight: '10px' }}>Platform:</div>
+                  {['all', 'pc', 'android'].map(filter => (
+                    <button
+                      key={filter}
+                      onClick={() => setManageFilter(filter)}
+                      style={{
+                        background: manageFilter === filter ? '#ff4747' : '#333',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '8px 16px',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        textTransform: 'capitalize'
+                      }}
+                    >
+                      {filter === 'all' ? `All (${games.length})` : `${filter.toUpperCase()} (${games.filter(g => g.type === filter).length})`}
+                    </button>
+                  ))}
+                </div>
+                
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', flexWrap: 'wrap' }}>
+                  <div style={{ color: '#999', fontSize: '14px', alignSelf: 'center', marginRight: '10px' }}>Genre:</div>
+                  {['all', 'action', 'adventure', 'horror', 'rpg', 'strategy', 'racing', 'sports', 'puzzle', 'simulation'].map(category => (
+                    <button
+                      key={category}
+                      onClick={() => setManageCategoryFilter(category)}
+                      style={{
+                        background: manageCategoryFilter === category ? '#4CAF50' : '#333',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '8px 16px',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        textTransform: 'capitalize'
+                      }}
+                    >
+                      {category === 'all' ? 'All Genres' : category === 'rpg' ? 'RPG' : category}
+                    </button>
+                  ))}
                 </div>
                 
                 <p style={{ color: '#999', marginBottom: '20px', fontSize: '14px' }}>💡 Drag and drop to reorder games</p>
@@ -874,7 +942,8 @@ const Admin = () => {
                       .filter(game => {
                         const matchesSearch = game.title?.toLowerCase().includes(searchTerm.toLowerCase());
                         const matchesFilter = manageFilter === 'all' || game.type === manageFilter;
-                        return matchesSearch && matchesFilter;
+                        const matchesCategory = manageCategoryFilter === 'all' || game.category === manageCategoryFilter;
+                        return matchesSearch && matchesFilter && matchesCategory;
                       })
                       .sort((a, b) => (b.priority || 0) - (a.priority || 0));
                     
@@ -912,7 +981,7 @@ const Admin = () => {
                       <div style={{ flex: 1 }}>
                         <div style={{ fontWeight: 'bold', fontSize: '16px' }}>{game.title}</div>
                         <div style={{ fontSize: '14px', color: '#999', marginTop: '5px' }}>
-                          {game.type?.toUpperCase()} • Views: {game.views} • Downloads: {game.downloads} • Priority: {game.priority}
+                          {game.type?.toUpperCase()} • {game.category ? game.category.charAt(0).toUpperCase() + game.category.slice(1) : 'No Category'} • Views: {game.views} • Downloads: {game.downloads} • Priority: {game.priority}
                         </div>
                       </div>
                       <input
@@ -924,7 +993,7 @@ const Admin = () => {
                       />
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <button
-                          onClick={() => setEditingGame(game)}
+                          onClick={() => setEditingGame({...game, category: game.category || 'action'})}
                           style={{ background: '#4CAF50', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
                         >
                           ✏️ Edit
@@ -1067,21 +1136,31 @@ const Admin = () => {
               
               <form onSubmit={(e) => {
                 e.preventDefault();
+                
+                // Ensure screenshots is properly formatted as array
+                let screenshots = [];
+                if (Array.isArray(editingGame.screenshots)) {
+                  screenshots = editingGame.screenshots.filter(url => url && url.trim());
+                } else if (typeof editingGame.screenshots === 'string') {
+                  screenshots = editingGame.screenshots.split('\n').filter(url => url && url.trim());
+                }
+                
                 const updateData = {
                   title: editingGame.title || '',
                   description: editingGame.description || '',
                   type: editingGame.type || 'pc',
+                  category: editingGame.category || 'action',
                   img: editingGame.img || '',
                   download: editingGame.download || '',
                   priority: parseInt(editingGame.priority) || 0,
                   trailer_url: editingGame.trailer_url || '',
-                  screenshots: Array.isArray(editingGame.screenshots) 
-                    ? editingGame.screenshots.filter(url => url && url.trim())
-                    : [],
+                  screenshots: screenshots,
                   requirements: editingGame.requirements || ''
                 };
+                
                 console.log('Form submission - editingGame:', editingGame);
                 console.log('Form submission - updateData:', updateData);
+                console.log('Screenshots being sent:', screenshots);
                 updateGame(editingGame.id, updateData);
               }}>
                 <div style={{ display: 'grid', gap: '15px', maxHeight: '70vh', overflow: 'auto', padding: '5px' }}>
@@ -1095,23 +1174,51 @@ const Admin = () => {
                     <textarea name="description" value={editingGame.description || ''} onChange={(e) => setEditingGame({ ...editingGame, description: e.target.value })} placeholder="Description" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', minHeight: '80px', resize: 'vertical', width: '100%' }} />
                   </div>
                   
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 100px', gap: '10px' }}>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Platform:</label>
-                      <select name="type" value={editingGame.type || 'pc'} onChange={(e) => setEditingGame({ ...editingGame, type: e.target.value })} style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%' }}>
-                        <option value="pc">PC</option>
-                        <option value="android">Android</option>
-                      </select>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 100px', gap: '10px' }}>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Platform:</label>
+                        <select name="type" value={editingGame.type || 'pc'} onChange={(e) => setEditingGame({ ...editingGame, type: e.target.value })} style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%' }}>
+                          <option value="pc">PC</option>
+                          <option value="android">Android</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Category:</label>
+                        <select name="category" value={editingGame.category || 'action'} onChange={(e) => setEditingGame({ ...editingGame, category: e.target.value })} style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%' }}>
+                          <option value="action">Action</option>
+                          <option value="adventure">Adventure</option>
+                          <option value="horror">Horror</option>
+                          <option value="rpg">RPG</option>
+                          <option value="strategy">Strategy</option>
+                          <option value="racing">Racing</option>
+                          <option value="sports">Sports</option>
+                          <option value="puzzle">Puzzle</option>
+                          <option value="simulation">Simulation</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Priority:</label>
+                        <input name="priority" type="number" value={editingGame.priority || 0} onChange={(e) => setEditingGame({ ...editingGame, priority: parseInt(e.target.value) || 0 })} placeholder="Priority" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%' }} />
+                      </div>
                     </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Priority:</label>
-                      <input name="priority" type="number" value={editingGame.priority || 0} onChange={(e) => setEditingGame({ ...editingGame, priority: parseInt(e.target.value) || 0 })} placeholder="Priority" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%' }} />
-                    </div>
-                  </div>
                   
                   <div>
+                    <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Upload Image:</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) uploadImageForEdit(file);
+                      }}
+                      style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%', marginBottom: '10px' }}
+                    />
+                    {editUploading && <div style={{ color: '#ff4747', fontSize: '12px', marginBottom: '10px' }}>⏳ Uploading...</div>}
+                    
+                    <div style={{ textAlign: 'center', margin: '10px 0', color: '#666', fontSize: '12px' }}>── OR ──</div>
+                    
                     <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Image URL:</label>
-                    <input name="img" value={editingGame.img || ''} onChange={(e) => setEditingGame({ ...editingGame, img: e.target.value })} placeholder="Image URL" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%' }} required />
+                    <input name="img" value={editingGame.img || ''} onChange={(e) => setEditingGame({ ...editingGame, img: e.target.value })} placeholder="https://example.com/image.jpg" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%' }} required />
                     {editingGame.img && (
                       <img src={editingGame.img} alt="Preview" style={{ width: '100px', height: '60px', objectFit: 'cover', borderRadius: '4px', marginTop: '5px' }} onError={(e) => e.target.style.display = 'none'} />
                     )}
@@ -1123,8 +1230,22 @@ const Admin = () => {
                   </div>
                   
                   <div>
+                    <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Upload Trailer:</label>
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) uploadTrailerForEdit(file);
+                      }}
+                      style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%', marginBottom: '10px' }}
+                    />
+                    {editUploadingTrailer && <div style={{ color: '#ff4747', fontSize: '12px', marginBottom: '10px' }}>⏳ Uploading trailer...</div>}
+                    
+                    <div style={{ textAlign: 'center', margin: '10px 0', color: '#666', fontSize: '12px' }}>── OR ──</div>
+                    
                     <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Trailer URL:</label>
-                    <input name="trailer_url" value={editingGame.trailer_url || ''} onChange={(e) => setEditingGame({ ...editingGame, trailer_url: e.target.value })} placeholder="Trailer URL" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%' }} />
+                    <input name="trailer_url" value={editingGame.trailer_url || ''} onChange={(e) => setEditingGame({ ...editingGame, trailer_url: e.target.value })} placeholder="https://example.com/trailer.mp4" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%' }} />
                     {editingGame.trailer_url && (
                       <div style={{ marginTop: '10px', position: 'relative' }}>
                         <video controls style={{ width: '200px', height: '120px', borderRadius: '4px' }}>
@@ -1142,8 +1263,37 @@ const Admin = () => {
                   </div>
                   
                   <div>
+                    <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Upload Screenshots:</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        if (files && files.length > 0) uploadScreenshotsForEdit(files);
+                      }}
+                      style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', width: '100%', marginBottom: '10px' }}
+                    />
+                    {editUploadingScreenshots && <div style={{ color: '#ff4747', fontSize: '12px', marginBottom: '10px' }}>⏳ Uploading screenshots...</div>}
+                    
+                    <div style={{ textAlign: 'center', margin: '10px 0', color: '#666', fontSize: '12px' }}>── OR ──</div>
+                    
                     <label style={{ display: 'block', marginBottom: '5px', color: '#4CAF50', fontSize: '14px' }}>Screenshots (one URL per line):</label>
-                    <textarea name="screenshots" value={Array.isArray(editingGame.screenshots) ? editingGame.screenshots.join('\n') : (editingGame.screenshots || '')} onChange={(e) => setEditingGame({ ...editingGame, screenshots: e.target.value.split('\n').filter(url => url.trim()) })} placeholder="Screenshot URLs (one per line)" style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', minHeight: '80px', resize: 'vertical', width: '100%' }} />
+                    <textarea 
+                      name="screenshots" 
+                      value={Array.isArray(editingGame.screenshots) 
+                        ? editingGame.screenshots.join('\n') 
+                        : (typeof editingGame.screenshots === 'string' 
+                          ? editingGame.screenshots 
+                          : '')
+                      } 
+                      onChange={(e) => {
+                        const urls = e.target.value.split('\n').filter(url => url.trim());
+                        setEditingGame({ ...editingGame, screenshots: urls });
+                      }} 
+                      placeholder="https://example.com/screenshot1.jpg\nhttps://example.com/screenshot2.jpg\nhttps://example.com/screenshot3.jpg" 
+                      style={{ padding: '12px', borderRadius: '6px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', minHeight: '120px', resize: 'vertical', width: '100%' }} 
+                    />
                     {Array.isArray(editingGame.screenshots) && editingGame.screenshots.length > 0 && (
                       <div style={{ marginTop: '10px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                         {editingGame.screenshots.map((url, index) => (
