@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../config/supabase';
 import { useNavigate } from 'react-router-dom';
 import SEO from '../components/SEO';
+import Footer from '../components/Footer';
 
 const Home = () => {
   const [games, setGames] = useState([]);
@@ -10,6 +11,8 @@ const Home = () => {
   const [filter, setFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [showFloatingSearch, setShowFloatingSearch] = useState(false);
+  const [floatingSearchExpanded, setFloatingSearchExpanded] = useState(false);
 
   const navigate = useNavigate();
 
@@ -95,6 +98,7 @@ const Home = () => {
       }
       
       setShowScrollTop(window.scrollY > 300);
+      setShowFloatingSearch(window.scrollY > 200 || searchTerm.length > 0);
     };
     
     document.addEventListener('keydown', handleKeyDown);
@@ -335,11 +339,56 @@ const Home = () => {
         </div>
       </main>
 
+      {showFloatingSearch && (
+        <div 
+          onClick={() => setFloatingSearchExpanded(!floatingSearchExpanded)}
+          style={{
+            position: 'fixed',
+            top: '140px',
+            left: '20px',
+            zIndex: 9999,
+            background: 'rgba(0,0,0,0.8)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: floatingSearchExpanded ? '25px' : '50%',
+            padding: floatingSearchExpanded ? '12px 20px' : '12px',
+            border: '1px solid rgba(255,71,71,0.3)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}
+        >
+          <div style={{ fontSize: '16px' }}>🔍</div>
+          {floatingSearchExpanded && (
+            <input
+              type="text"
+              placeholder="Search games..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              style={{ 
+                background: 'transparent', 
+                border: 'none', 
+                color: '#fff', 
+                outline: 'none', 
+                fontSize: '14px',
+                width: '150px'
+              }}
+              autoFocus
+            />
+          )}
+        </div>
+      )}
+      
       {showScrollTop && (
         <button className="scroll-top-btn" onClick={scrollToTop}>
           ↑
         </button>
       )}
+      
+      <Footer />
     </div>
   );
 };

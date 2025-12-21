@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../config/supabase';
 import SEO from '../components/SEO';
+import Footer from '../components/Footer';
 
 const Game = () => {
   const { id } = useParams();
@@ -578,6 +579,8 @@ const Game = () => {
           </button>
         </div>
       )}
+      
+      <Footer />
     </div>
   );
 };

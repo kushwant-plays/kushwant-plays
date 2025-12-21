@@ -1,9 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SEO from '../components/SEO';
+import { supabase } from '../config/supabase';
 
 const Index = () => {
   const navigate = useNavigate();
+  const [topGames, setTopGames] = useState([]);
 
   useEffect(() => {
     const images = document.querySelectorAll('.bg-slideshow img');
@@ -16,8 +18,18 @@ const Index = () => {
     };
 
     const interval = setInterval(showNextImage, 3000);
+    loadTopGames();
     return () => clearInterval(interval);
   }, []);
+  
+  const loadTopGames = async () => {
+    const { data } = await supabase
+      .from('games')
+      .select('id, title, img, type')
+      .order('priority', { ascending: false })
+      .limit(3);
+    setTopGames(data || []);
+  };
 
   return (
     <div className="index-page">
@@ -101,6 +113,45 @@ const Index = () => {
         <button className="enter-btn" onClick={() => navigate('/games')}>
           View Games
         </button>
+        
+        {topGames.length > 0 && (
+          <div style={{ marginTop: '20px' }}>
+            <h3 style={{ color: '#ff4747', textAlign: 'center', marginBottom: '15px', fontSize: '16px', fontWeight: '600' }}>
+              🔥 Featured
+            </h3>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+              {topGames.map(game => (
+                <div 
+                  key={game.id}
+                  onClick={() => navigate(`/game/${game.id}`)}
+                  style={{ 
+                    width: '100px',
+                    background: 'rgba(0,0,0,0.4)', 
+                    borderRadius: '8px', 
+                    overflow: 'hidden', 
+                    cursor: 'pointer',
+                    transition: 'transform 0.2s ease',
+                    border: '1px solid rgba(255,71,71,0.2)'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+                  onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                >
+                  <img 
+                    src={game.img || '/assets/playslogo.png'} 
+                    alt={game.title}
+                    style={{ width: '100%', height: '60px', objectFit: 'cover' }}
+                    onError={(e) => e.target.src = '/assets/playslogo.png'}
+                  />
+                  <div style={{ padding: '6px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '10px', fontWeight: '600', color: '#fff' }}>
+                      {game.title.length > 10 ? game.title.substring(0, 10) + '...' : game.title}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

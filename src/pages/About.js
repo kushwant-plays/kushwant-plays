@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import SEO from '../components/SEO';
+import Footer from '../components/Footer';
 
 const About = () => {
   const navigate = useNavigate();
@@ -106,6 +107,8 @@ const About = () => {
           </div>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 };
