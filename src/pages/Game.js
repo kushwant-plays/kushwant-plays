@@ -190,7 +190,7 @@ const Game = () => {
         {/* Header */}
         <header style={{ position: 'absolute', top: 0, width: '100%', padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <img src="./assets/playslogo.png" alt="Logo" style={{ height: '45px', borderRadius: '50%' }} />
+            <img src="/assets/playslogo.png" alt="Logo" style={{ height: '45px', borderRadius: '50%' }} />
             <h1 style={{ fontSize: '22px', margin: 0 }}>Kushwant Plays</h1>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>

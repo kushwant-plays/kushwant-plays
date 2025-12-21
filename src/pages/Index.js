@@ -39,9 +39,9 @@ const Index = () => {
         keywords="free games, PC games, Android games, game download, gaming, Kushwant Plays"
       />
       <div className="bg-slideshow">
-        <img src="./assets/bg1.jpg" className="active" alt="" />
-        <img src="./assets/bg2.jpg" alt="" />
-        <img src="./assets/bg3.jpg" alt="" />
+        <img src="/assets/bg1.jpg" className="active" alt="" />
+        <img src="/assets/bg2.jpg" alt="" />
+        <img src="/assets/bg3.jpg" alt="" />
       </div>
 
       <button 
@@ -76,7 +76,7 @@ const Index = () => {
 
       <div className="index-content">
         <div className="logo-section">
-          <img src="./assets/playslogo.png" alt="Kushwant Plays" className="index-logo" />
+          <img src="/assets/playslogo.png" alt="Kushwant Plays" className="index-logo" />
           <h1 className="index-title">Kushwant Plays</h1>
           <p className="index-description">Your ultimate destination for free games</p>
         </div>
@@ -137,10 +137,10 @@ const Index = () => {
                   onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
                   <img 
-                    src={game.img || './assets/playslogo.png'} 
+                    src={game.img || '/assets/playslogo.png'} 
                     alt={game.title}
                     style={{ width: '100%', height: '60px', objectFit: 'cover' }}
-                    onError={(e) => e.target.src = './assets/playslogo.png'}
+                    onError={(e) => e.target.src = '/assets/playslogo.png'}
                   />
                   <div style={{ padding: '6px', textAlign: 'center' }}>
                     <div style={{ fontSize: '10px', fontWeight: '600', color: '#fff' }}>
