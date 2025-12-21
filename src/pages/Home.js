@@ -147,14 +147,14 @@ const Home = () => {
         keywords="free games, PC games, Android games, game gallery, download games"
       />
       <div className="bg-slideshow">
-        <img src="/assets/bg1.jpg" className="active" alt="" />
-        <img src="/assets/bg2.jpg" alt="" />
-        <img src="/assets/bg3.jpg" alt="" />
+        <img src="./assets/bg1.jpg" className="active" alt="" />
+        <img src="./assets/bg2.jpg" alt="" />
+        <img src="./assets/bg3.jpg" alt="" />
       </div>
 
       <header className="header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <img src="/assets/playslogo.png" alt="Kushwant Plays" />
+          <img src="./assets/playslogo.png" alt="Kushwant Plays" />
           <h1 style={{ margin: 0, fontSize: '28px', fontWeight: '700', color: '#ff4747' }}>Kushwant Plays</h1>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -281,7 +281,7 @@ const Home = () => {
             style={{ cursor: 'pointer' }}
           >
             <img 
-              src="/assets/playslogo.png" 
+              src="./assets/playslogo.png" 
               alt="Tutorial: How to Download Games"
               style={{ width: '100%', height: '180px', borderRadius: '12px', objectFit: 'cover' }}
             />
@@ -312,9 +312,9 @@ const Home = () => {
                 style={{ position: 'relative' }}
               >
                 <img 
-                  src={game.img || '/assets/playslogo.png'} 
+                  src={game.img || './assets/playslogo.png'} 
                   alt={game.title}
-                  onError={(e) => e.target.src = '/assets/playslogo.png'}
+                  onError={(e) => e.target.src = './assets/playslogo.png'}
                 />
                 {index === 0 && (
                   <div style={{

@@ -24,7 +24,7 @@ const About = () => {
 
         <div style={{ background: 'rgba(255,255,255,0.05)', padding: '40px', borderRadius: '12px' }}>
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-            <img src="/assets/playslogo.png" alt="Kushwant Plays" style={{ width: '100px', height: '100px', borderRadius: '50%', marginBottom: '20px' }} />
+            <img src="./assets/playslogo.png" alt="Kushwant Plays" style={{ width: '100px', height: '100px', borderRadius: '50%', marginBottom: '20px' }} />
             <h1 style={{ color: '#ff4747', margin: '0 0 10px 0' }}>About Kushwant Plays</h1>
             <p style={{ color: '#999', fontSize: '18px' }}>Your trusted source for free gaming content</p>
           </div>

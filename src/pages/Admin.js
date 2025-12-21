@@ -973,9 +973,9 @@ const Admin = () => {
                     >
                       <div style={{ color: '#666', fontSize: '18px', cursor: 'grab' }}>⋮⋮</div>
                       <img 
-                        src={game.img || '/assets/playslogo.png'} 
+                        src={game.img || './assets/playslogo.png'} 
                         alt={game.title}
-                        onError={(e) => e.target.src = '/assets/playslogo.png'}
+                        onError={(e) => e.target.src = './assets/playslogo.png'}
                         style={{ width: '80px', height: '50px', objectFit: 'cover', borderRadius: '6px' }} 
                       />
                       <div style={{ flex: 1 }}>

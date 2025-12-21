@@ -17,7 +17,7 @@ const Footer = () => {
           {/* Brand Section */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
-              <img src="/assets/playslogo.png" alt="Kushwant Plays" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
+              <img src="./assets/playslogo.png" alt="Kushwant Plays" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
               <h3 style={{ color: '#ff4747', margin: 0 }}>Kushwant Plays</h3>
             </div>
             <p style={{ color: '#999', fontSize: '14px', lineHeight: '1.6' }}>
