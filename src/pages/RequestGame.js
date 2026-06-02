@@ -14,11 +14,40 @@ const RequestGame = () => {
   const [status, setStatus] = useState('');
   const navigate = useNavigate();
 
+  const validateEmail = async (email) => {
+    // Basic format check
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) return false;
+
+    // Check domain has valid MX record via public API
+    const domain = email.split('@')[1];
+    try {
+      const res = await fetch(`https://dns.google/resolve?name=${domain}&type=MX`);
+      const data = await res.json();
+      return data.Answer && data.Answer.length > 0;
+    } catch {
+      return true; // allow if check fails
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
     try {
+      // Validate email
+      if (!formData.user_email) {
+        setStatus('❌ Email is required.');
+        setLoading(false);
+        return;
+      }
+
+      const emailValid = await validateEmail(formData.user_email);
+      if (!emailValid) {
+        setStatus('❌ Please enter a valid existing email address.');
+        setLoading(false);
+        return;
+      }
       // Add timestamp to the data
       const requestData = {
         ...formData,
@@ -99,15 +128,16 @@ const RequestGame = () => {
 
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', marginBottom: '8px', color: '#ff4747', fontWeight: '600' }}>
-                Email (Optional)
+                Email *
               </label>
               <input
                 type="email"
                 name="user_email"
                 value={formData.user_email}
                 onChange={handleChange}
-                placeholder="Enter your email (optional)"
+                placeholder="Enter your email"
                 style={{ width: '100%', padding: '15px', borderRadius: '8px', border: '1px solid #333', background: '#2a2a2a', color: '#fff', fontSize: '16px' }}
+                required
               />
             </div>
 
