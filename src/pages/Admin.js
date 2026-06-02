@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../config/supabase';
 import './Admin.css';
 
-const PASSWORD = 'kushwant123';
+const PASSWORD = 'kushwant123'; // v2
 
 const EMPTY_FORM = { title: '', description: '', img: '', game_url: '', type: 'pc', category: 'action', priority: 0 };
 
