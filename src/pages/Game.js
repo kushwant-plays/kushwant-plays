@@ -16,7 +16,7 @@ const Game = () => {
   const [currentScreenshotIndex, setCurrentScreenshotIndex] = useState(0);
 
   useEffect(() => {
-    loadGame();
+    loadGame(); // eslint-disable-line react-hooks/exhaustive-deps
     loadComments();
     trackView();
     

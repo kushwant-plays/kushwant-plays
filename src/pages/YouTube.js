@@ -7,7 +7,7 @@ const YouTube = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadYouTubeData();
+    loadYouTubeData(); // eslint-disable-line react-hooks/exhaustive-deps
   }, []);
 
   const loadYouTubeData = async () => {

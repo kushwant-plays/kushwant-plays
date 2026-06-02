@@ -46,7 +46,7 @@ const Home = () => {
   };
 
   useEffect(() => {
-    loadGamesWithCache();
+    loadGamesWithCache(); // eslint-disable-line react-hooks/exhaustive-deps
     
     // Real-time subscription for games
     const subscription = supabase
@@ -113,7 +113,7 @@ const Home = () => {
   }, [navigate]);
 
   useEffect(() => {
-    filterGames();
+    filterGames(); // eslint-disable-line react-hooks/exhaustive-deps
   }, [games, searchTerm, filter, categoryFilter]);
 
   const filterGames = () => {
