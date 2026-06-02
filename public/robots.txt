@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Sitemap: https://kushwant-plays.vercel.app/sitemap.xml
