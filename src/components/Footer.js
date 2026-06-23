@@ -40,7 +40,7 @@ const Footer = () => {
             <h4 style={{ color: '#fff', marginBottom: '15px', fontSize: '16px' }}>Contact</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <a href="mailto:prady346@gmail.com" style={{ color: '#999', fontSize: '14px', textDecoration: 'none' }}>📧 prady346@gmail.com</a>
-              <a href="https://wa.me/918639529977" target="_blank" rel="noopener noreferrer" style={{ color: '#999', fontSize: '14px', textDecoration: 'none' }}>💬 WhatsApp</a>
+
             </div>
           </div>
 

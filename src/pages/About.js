@@ -61,14 +61,7 @@ const About = () => {
                     <small style={{ color: '#999' }}>For business inquiries, game requests, or support</small>
                   </div>
                 </div>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <span style={{ fontSize: '24px' }}>💬</span>
-                  <div>
-                    <strong>WhatsApp:</strong> <a href="https://wa.me/918639529977" target="_blank" rel="noopener noreferrer" style={{ color: '#ff4747' }}>Chat with us</a><br/>
-                    <small style={{ color: '#999' }}>Quick support and instant replies</small>
-                  </div>
-                </div>
+
               </div>
             </section>
 
