@@ -69,30 +69,6 @@ const About = () => {
                     <small style={{ color: '#999' }}>Quick support and instant replies</small>
                   </div>
                 </div>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <span style={{ fontSize: '24px' }}>📱</span>
-                  <div>
-                    <strong>Instagram:</strong> <a href="https://www.instagram.com/kushwant_plays/" target="_blank" rel="noopener noreferrer" style={{ color: '#ff4747' }}>@kushwant_plays</a><br/>
-                    <small style={{ color: '#999' }}>DM us for help, updates, and community</small>
-                  </div>
-                </div>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <span style={{ fontSize: '24px' }}>🎮</span>
-                  <div>
-                    <strong>Discord:</strong> <a href="https://discord.gg/Ezfk9D7Z2Q" target="_blank" rel="noopener noreferrer" style={{ color: '#ff4747' }}>Join our server</a><br/>
-                    <small style={{ color: '#999' }}>Get help from community and moderators</small>
-                  </div>
-                </div>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <span style={{ fontSize: '24px' }}>🎥</span>
-                  <div>
-                    <strong>YouTube:</strong> <a href="https://www.youtube.com/@kushwantplays" target="_blank" rel="noopener noreferrer" style={{ color: '#ff4747' }}>@kushwantplays</a><br/>
-                    <small style={{ color: '#999' }}>Gaming videos and tutorials</small>
-                  </div>
-                </div>
               </div>
             </section>
 
